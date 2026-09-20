@@ -1,0 +1,235 @@
+@extends('layouts.admin', ['active' => 'users', 'cssFile' => 'users'])
+
+@section('title', 'Users')
+@section('page-title', 'Users')
+
+@section('topbar-actions')
+    <button class="topbar-btn" onclick="openModal('addUserModal')">+ Add User</button>
+@endsection
+
+@section('content')
+
+    <div class="stat-grid reveal" id="userStats">
+        <div class="stat-card" data-icon="users">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value" id="totalUsers">—</div>
+        </div>
+        <div class="stat-card" data-icon="driver">
+            <div class="stat-label">Drivers</div>
+            <div class="stat-value" id="totalDrivers">—</div>
+        </div>
+        <div class="stat-card" data-icon="home">
+            <div class="stat-label">Residents</div>
+            <div class="stat-value" id="totalResidents">—</div>
+        </div>
+    </div>
+
+    <div class="panel reveal">
+        <div class="panel-header">
+            <div class="panel-title">
+                <div class="panel-title-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg></div>All Users
+            </div>
+            <div class="flex-row" style="gap:8px;flex-wrap:wrap;">
+                <div class="search-bar"><input type="text" placeholder="Search users…" id="searchInput" oninput="filterUsers()"></div>
+                <select class="form-control" id="roleFilter" onchange="filterUsers()" style="width:130px;padding:8px 12px;font-size:0.82rem">
+                    <option value="">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="driver">Driver</option>
+                    <option value="resident">Resident</option>
+                </select>
+            </div>
+        </div>
+        <div class="panel-body-flush">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Phone</th><th>Address</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="usersBody">
+                        <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text2)"><span class="loading-spinner"></span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+@endsection
+
+@section('extra-modals')
+
+    <div class="modal-overlay" id="addUserModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                    </svg> Add New User</div>
+                <button class="modal-close" onclick="closeModal('addUserModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid form-grid-2">
+                    <div class="form-group"><label class="form-label">Full Name</label><input class="form-control" id="uName" placeholder="John Doe"></div>
+                    <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="uEmail" type="email" placeholder="john@example.com"></div>
+                    <div class="form-group"><label class="form-label">Password</label><input class="form-control" id="uPass" type="password" placeholder="••••••••"></div>
+                    <div class="form-group"><label class="form-label">Role</label>
+                        <select class="form-control" id="uRole">
+                            <option value="resident">Resident</option>
+                            <option value="driver">Driver</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Phone</label><input class="form-control" id="uPhone" placeholder="+1 555 0000"></div>
+                    <div class="form-group"><label class="form-label">Address</label><input class="form-control" id="uAddress" placeholder="123 Main St"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('addUserModal')">Cancel</button>
+                <button class="btn btn-gold" onclick="addUser()">Create User</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editUserModal">
+        <div class="modal" style="max-width:550px;">
+            <div class="modal-header">
+                <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                    </svg> Edit User</div>
+                <button class="modal-close" onclick="closeModal('editUserModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editUserId">
+                <div class="user-edit-section">
+                    <div class="section-title-sm"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+                            <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+                        </svg> Personal Information</div>
+                    <div class="form-grid form-grid-2">
+                        <div class="form-group"><label class="form-label">Full Name</label><input class="form-control" id="editName" placeholder="John Doe"></div>
+                        <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="editEmail" type="email" placeholder="john@example.com"></div>
+                        <div class="form-group"><label class="form-label">Phone</label><input class="form-control" id="editPhone" placeholder="+1 555 0000"></div>
+                        <div class="form-group"><label class="form-label">Address</label><input class="form-control" id="editAddress" placeholder="123 Main St"></div>
+                        <div class="form-group"><label class="form-label">Role</label>
+                            <select class="form-control" id="editRole">
+                                <option value="resident">Resident</option>
+                                <option value="driver">Driver</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-edit-section">
+                    <div class="section-title-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                        </svg> Change Password</div>
+                    <div class="form-grid form-grid-2">
+                        <div class="form-group password-toggle" style="grid-column:1/-1">
+                            <label class="form-label">New Password <span style="color:var(--text3);font-weight:400;text-transform:none;">(leave blank to keep current)</span></label>
+                            <div style="position:relative;">
+                                <input class="form-control" id="editPassword" type="password" placeholder="Enter new password…">
+                                <button type="button" class="toggle-btn" onclick="togglePasswordVisibility('editPassword', this)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+                                    </svg></button>
+                            </div>
+                        </div>
+                        <div class="form-group password-toggle" style="grid-column:1/-1">
+                            <label class="form-label">Confirm New Password</label>
+                            <div style="position:relative;">
+                                <input class="form-control" id="editPasswordConfirm" type="password" placeholder="Confirm new password…">
+                                <button type="button" class="toggle-btn" onclick="togglePasswordVisibility('editPasswordConfirm', this)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+                                    </svg></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('editUserModal')">Cancel</button>
+                <button class="btn btn-gold" onclick="updateUser()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" />
+                    </svg> Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="viewUserModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                    </svg> User Details</div>
+                <button class="modal-close" onclick="closeModal('viewUserModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-body" id="viewUserBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('viewUserModal')">Close</button>
+                <button class="btn btn-gold" onclick="openEditFromView()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                    </svg> Edit User</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal" style="max-width:450px;">
+            <div class="modal-header" style="border-bottom-color:var(--red);">
+                <div class="modal-title" style="color:var(--red);display:flex;align-items:center;gap:8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg> Delete User</div>
+                <button class="modal-close" onclick="closeModal('deleteConfirmModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text2);margin-bottom:8px;">
+                    You are about to delete <strong id="deleteUserName" style="color:var(--text);"></strong>.
+                </p>
+                <p style="color:var(--text3);font-size:0.85rem;margin-bottom:16px;">
+                    This action <strong style="color:var(--red);">cannot be undone</strong>. All data associated with this user will be permanently removed.
+                </p>
+                <div style="background:rgba(255,0,0,0.05);border:1px solid rgba(255,0,0,0.15);border-radius:8px;padding:12px;">
+                    <label class="form-label" style="color:var(--red);">Type <span style="font-weight:800;font-size:1rem;">DELETE</span> to confirm</label>
+                    <input type="text" id="deleteConfirmInput" class="confirm-delete-input" placeholder="Type DELETE here..." oninput="onDeleteConfirmInput()">
+                    <div id="deleteConfirmError" style="color:var(--red);font-size:0.75rem;margin-top:6px;display:none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg> Please type "DELETE" exactly as shown
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('deleteConfirmModal')">Cancel</button>
+                <button class="btn btn-danger" id="deleteConfirmBtn" disabled onclick="confirmDeleteUser()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg> Delete User</button>
+            </div>
+        </div>
+    </div>
+
+@endsection
+
+@push('scripts')
+    <script src="{{ asset('js/admin/users.js') }}"></script>
+@endpush

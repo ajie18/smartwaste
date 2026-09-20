@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanCity — Resident Registration</title>
+    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+</head>
+
+<body>
+    <div class="page">
+        <!-- Left Hero Panel Area -->
+        <div class="left">
+            <div class="brand-logo">
+                <div class="brand-icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
+                        xmlns="http://w3.org">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                        </path>
+                    </svg>
+                </div>
+                <div class="brand-name">
+                    CleanCity
+                    <span>Jose Dalman · Zamboanga del Norte</span>
+                </div>
+            </div>
+            <h1 class="hero-headline">Join Your Community's <em>Clean Future.</em></h1>
+            <p class="hero-sub">Create an account to check pickup schedules, track collection trucks, and report issues
+                in your area.</p>
+        </div>
+
+        <!-- Right Core Card Form Area -->
+        <div class="right">
+            <main class="card">
+                <header class="card-header">
+                    <div class="role-badge">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                            xmlns="http://w3.org">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z">
+                            </path>
+                        </svg>
+                        Resident Verification
+                    </div>
+                    <h2 class="card-title">Create account</h2>
+                    <p class="card-sub">Sign up to get started as a resident.</p>
+                </header>
+
+                <div id="alertBox" class="alert" aria-live="polite"></div>
+
+                <form id="registerForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label class="form-label" for="fullName">Full Name *</label>
+                        <div class="input-wrap">
+                            <div class="input-icon">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                    xmlns="http://w3.org">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <input class="form-input" type="text" id="fullName" placeholder="Juan Dela Cruz"
+                                required autocomplete="name">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Phone Number *</label>
+                            <div class="input-wrap">
+                                <div class="input-icon">
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                        xmlns="http://w3.org">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M10.5 1.5H13.5M10.5 22.5H13.5M19.5 3.75V20.25C19.5 21.493 18.493 22.5 17.25 22.5H6.75C5.507 22.5 4.5 21.493 4.5 20.25V3.75C4.5 2.507 5.507 1.5 6.75 1.5H17.25C18.493 1.5 19.5 2.507 19.5 3.75Z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <input class="form-input" type="tel" id="phone" placeholder="09123456789"
+                                    inputmode="numeric" required pattern="09[0-9]{9}" autocomplete="tel">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address *</label>
+                            <div class="input-wrap">
+                                <div class="input-icon">
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                        xmlns="http://w3.org">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <input class="form-input" type="email" id="email" placeholder="name@example.com"
+                                    required autocomplete="email">
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="form-hint" style="margin-bottom: 20px;">Make sure this is correct — we'll use it to send
+                        account recovery codes via SMS.</p>
+
+                    <div class="form-group password-wrapper">
+                        <label class="form-label" for="password">Password *</label>
+                        <div class="input-wrap">
+                            <div class="input-icon">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                    xmlns="http://w3.org">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <input class="form-input" type="password" id="password"
+                                placeholder="Minimum 8 characters" required autocomplete="new-password">
+                            <button type="button" class="toggle-password" id="toggleRegisterPasswordBtn"
+                                aria-label="Toggle password visibility">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                    xmlns="http://w3.org">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z">
+                                    </path>
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="homeAddress">Home Address</label>
+                        <div class="input-wrap">
+                            <div class="input-icon">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                    xmlns="http://w3.org">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25">
+                                    </path>
+                                </svg>
+                            </div>
+                            <input class="form-input" type="text" id="homeAddress"
+                                placeholder="Poblacion, Jose Dalman" autocomplete="street-address">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" id="registerBtn" style="margin-top: 12px;">
+                        <span class="btn-text">Create Account</span>
+                        <span class="btn-loader" hidden><span class="spinner"></span> Creating…</span>
+                    </button>
+                </form>
+
+                <div class="divider">or</div>
+
+                <footer class="card-foot">
+                    Already have an account? <a href="{{ route('login') }}">Sign in here →</a>
+                </footer>
+            </main>
+        </div>
+    </div>
+    <script src="{{ asset('js/register.js') }}"></script>
+</body>
+
+</html>

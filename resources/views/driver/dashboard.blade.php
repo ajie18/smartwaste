@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CleanCity · Driver Portal (Real-time)</title>
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme") ||
+                (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+            document.documentElement.setAttribute("data-theme", theme);
+        })();
+    </script>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♻️</text></svg>">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/driver/dashboard.css') }}" />
+</head>
+
+<body>
+
+    <div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+                    <path d="M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+                    <path d="M5 17H3V6a1 1 0 0 1 1-1h11l3 5v7h-2" />
+                    <path d="M9 6v5h8" />
+                </svg>
+            </div>
+            <div>
+                <div class="logo-text">CleanCity</div>
+                <div class="logo-sub">Driver Portal</div>
+            </div>
+        </div>
+
+        <!-- Redesigned GPS toggle -->
+        <button type="button" class="gps-btn" id="gpsToggle" onclick="toggleGPS()" aria-pressed="false">
+            <span class="gps-btn-icon" aria-hidden="true">
+                <svg class="gps-icon-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                </svg>
+                <svg class="gps-icon-on" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                </svg>
+            </span>
+            <span class="gps-btn-text">
+                <span class="gps-btn-label" id="gpsLabel">GPS Off</span>
+                <span class="gps-btn-acc" id="gpsAccBadge">—</span>
+            </span>
+            <span class="gps-btn-switch" aria-hidden="true"><span class="gps-btn-knob"></span></span>
+        </button>
+
+        <nav class="sidebar-nav">
+            <div class="nav-label">Today</div>
+            <button class="nav-item active" data-tab="today" onclick="switchTab('today',this)">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                        <rect x="9" y="3" width="6" height="4" rx="1" />
+                        <path d="M9 12h6M9 16h4" />
+                    </svg></span>
+                Today's Route
+            </button>
+
+            <div class="nav-label">Schedule</div>
+            <button class="nav-item" data-tab="schedule" onclick="switchTab('schedule',this)">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <path d="M16 2v4M8 2v4M3 10h18" />
+                    </svg></span>
+                My Schedule
+            </button>
+
+            <div class="nav-label">Operations</div>
+            <button class="nav-item" data-tab="report" onclick="switchTab('report',this)">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg></span>
+                File Report
+            </button>
+            <button class="nav-item" data-tab="issues" onclick="switchTab('issues',this)">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg></span>
+                Nearby Issues
+                <span class="nav-badge" id="issuesBadge" style="display:none">0</span>
+            </button>
+            <button class="nav-item" data-tab="announcements" onclick="switchTab('announcements',this)">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg></span>
+                Notices
+                <span class="nav-badge" id="annBadge" style="display:none">0</span>
+            </button>
+
+            <div class="nav-label">History & Profile</div>
+            <button class="nav-item" data-tab="trips" onclick="switchTab('trips',this)">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3v18h18" />
+                        <path d="M7 16l4-8 4 4 4-6" />
+                    </svg></span>
+                Trip History
+            </button>
+            <button class="nav-item" data-tab="profile" onclick="switchTab('profile',this)">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg></span>
+                My Profile
+            </button>
+
+            <div class="nav-label">Preferences</div>
+            <button class="theme-toggle" id="themeToggleBtn" type="button">
+                <span class="theme-icon" id="themeIcon">
+                    <svg class="icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                    <svg class="icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" />
+                        <path
+                            d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                    </svg>
+                </span>
+                <span class="theme-label" id="themeLabel">Dark Mode</span>
+                <span class="theme-switch"><span class="theme-knob"></span></span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="driver-card">
+                <div class="driver-avatar" id="sidebarAvatar">?</div>
+                <div class="driver-info">
+                    <div class="driver-name" id="sidebarName">Loading…</div>
+                    <div class="driver-role">Collector · Driver</div>
+                </div>
+            </div>
+            <button type="button" class="btn-logout" onclick="openModal('logoutConfirmModal')">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <div class="layout">
+        <div class="topbar">
+            <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="topbar-title" id="topbarTitle">Today's Route</div>
+            <div class="topbar-date" id="topbarDate">—</div>
+            <div class="connection-status online" id="connStatus">
+                <span class="dot"></span>
+                <span id="connLabel">Connected</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="tab-panel active" id="tab-today">
+                <div class="route-tabs" id="routeTabs" style="display:none;"></div>
+                <div id="assignmentCard">
+                    <div class="skel" style="height:180px;margin-bottom:20px"></div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card" data-icon="check">
+                        <div class="stat-val" id="statCompleted">—</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                    <div class="stat-card" data-icon="trucks">
+                        <div class="stat-val" id="statTotal">—</div>
+                        <div class="stat-label">Total Trips</div>
+                    </div>
+                    <div class="stat-card" data-icon="pending">
+                        <div class="stat-val" id="statPending">—</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                    <div class="stat-card" data-icon="distance">
+                        <div class="stat-val" id="statDist">—</div>
+                        <div class="stat-label">Route KM</div>
+                    </div>
+                </div>
+
+                <div class="map-card">
+                    <div class="map-toolbar">
+                        <span class="map-toolbar-title">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                            </svg>
+                            Live Navigation
+                        </span>
+                    </div>
+                    <div class="map-toolbar-actions">
+                        <button class="map-btn" onclick="centerMe()">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                                stroke-width="2.2">
+                                <circle cx="12" cy="12" r="3" />
+                                <path d="M12 2v2M12 20v2M2 12h2M20 12h2" />
+                            </svg>
+                            Me
+                        </button>
+                        <button class="map-btn" id="lockBtn" onclick="toggleLock()">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                                stroke-width="2.2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                            Lock
+                        </button>
+                        <button class="map-btn" id="satBtn" onclick="toggleSat()">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                                stroke-width="2.2">
+                                <circle cx="12" cy="12" r="10" />
+                                <path
+                                    d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                            </svg>
+                            Sat
+                        </button>
+                        <span class="map-toolbar-divider"></span>
+                        <button class="map-btn" onclick="toggleRoutePanel()">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                                stroke-width="2.2">
+                                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                                <rect x="9" y="3" width="6" height="4" rx="1" />
+                            </svg>
+                            Stops
+                        </button>
+                        <button class="map-btn blue-btn" onclick="loadResidents();toast('Refreshed','success')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                                stroke-width="2.2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                <polyline points="9 22 9 12 15 12 15 22" />
+                            </svg>
+                            Residents
+                        </button>
+                        <button class="map-btn red-btn active" id="issuesToggleBtn" onclick="toggleIssueMarkers()">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                                stroke-width="2.2">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            Issues
+                        </button>
+                        <button class="map-btn" onclick="goToMRF()">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                                stroke-width="2.2">
+                                <path d="M3 21h18M5 21V7l7-4 7 4v14" />
+                                <path d="M9 9v.01M15 9v.01M9 15v.01M15 15v.01" />
+                            </svg>
+                            MRF
+                        </button>
+                    </div>
+                    <div id="driverMap"></div>
+                    <div class="map-legend">
+                        <div class="legend-items">
+                            <div class="legend-item">
+                                <div class="legend-dot truck"></div>Your Truck
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot mrf"></div>MRF
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot stop"></div>Pickup Stop
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot resident"></div>Residents
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot issue"></div>Reported Issue
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot remaining"></div>Route Ahead
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot driven"></div>Route Done
+                            </div>
+                        </div>
+                        <div class="hud-residents" onclick="loadResidents()">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                            </svg>
+                            <span id="residentCountHUD">0</span> online
+                        </div>
+                    </div>
+                    <div class="location-bar">
+                        <span class="loc-label">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            Position:
+                        </span>
+                        <span class="loc-coords" id="coordsText">Waiting for GPS…</span>
+                        <span id="accText">—</span>
+                        <span class="loc-time" id="locTime">—</span>
+                    </div>
+                </div>
+
+                <div class="route-info-box" id="routePanel">
+                    <div class="route-panel-header">
+                        <strong class="route-panel-title">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                                <rect x="9" y="3" width="6" height="4" rx="1" />
+                            </svg>
+                            Route Stops
+                        </strong>
+                        <div class="route-panel-actions">
+                            <button class="btn btn-ghost btn-sm" onclick="fitAllStops()">Fit Map</button>
+                            <button class="btn btn-ghost btn-sm" onclick="optimizeRoute()">Optimize</button>
+                        </div>
+                    </div>
+                    <div class="route-stats">
+                        <div class="route-stat">
+                            <div class="route-stat-val" id="routeDist">—</div>
+                            <div class="route-stat-label">Route Length</div>
+                        </div>
+                        <div class="route-stat">
+                            <div class="route-stat-val" id="routeStops">0</div>
+                            <div class="route-stat-label">Pin Stops</div>
+                        </div>
+                        <div class="route-stat">
+                            <div class="route-stat-val" id="routeWpCount">0</div>
+                            <div class="route-stat-label">Road Points</div>
+                        </div>
+                    </div>
+                    <div class="wp-list" id="wpList"></div>
+                </div>
+            </div>
+
+            <div class="tab-panel" id="tab-schedule">
+                <div class="section-title">
+                    <span class="section-title-icon">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                    </span>
+                    My Schedule
+                </div>
+                <div class="list-stack" id="scheduleList">
+                    <div class="skel" style="height:80px"></div>
+                    <div class="skel" style="height:80px"></div>
+                </div>
+            </div>
+
+            <div class="tab-panel" id="tab-report">
+                <div class="section-title">
+                    <span class="section-title-icon">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                            <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                    </span>
+                    File a Report
+                </div>
+                <div class="form-card">
+                    <form id="reportForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Issue Type</label>
+                                <select id="repType" class="form-control">
+                                    <option value="missed_pickup">Missed Pickup</option>
+                                    <option value="illegal_dumping">Illegal Dumping</option>
+                                    <option value="overflowing_bin">Overflowing Bin</option>
+                                    <option value="road_blocked">Road Blocked</option>
+                                    <option value="equipment_fault">Equipment Fault</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Location</label>
+                                <div class="input-with-btn">
+                                    <input type="text" id="repLocation" class="form-control"
+                                        placeholder="e.g. Corner of Rizal & Mabini St">
+                                    <button type="button" class="btn btn-ghost" onclick="useCurrentLoc()">Use GPS</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            <textarea id="repDesc" class="form-control"
+                                placeholder="Describe the issue clearly…"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Report</button>
+                    </form>
+                </div>
+                <div class="divider"></div>
+                <div class="section-title">
+                    <span class="section-title-icon">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+                            <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+                        </svg>
+                    </span>
+                    My Reports
+                </div>
+                <div class="list-stack" id="myReportsList"></div>
+            </div>
+
+            <div class="tab-panel" id="tab-issues">
+                <div class="section-title">
+                    <span class="section-title-icon">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                    </span>
+                    Nearby Reported Issues
+                </div>
+                <p class="tab-intro">Issues reported by residents that haven't been resolved yet. Use
+                    <strong>Go</strong> to locate one on the map, or <strong>Done</strong> once you've handled it.
+                </p>
+                <div class="list-stack" id="issuesListPanel">
+                    <div class="skel" style="height:100px"></div>
+                    <div class="skel" style="height:100px"></div>
+                </div>
+            </div>
+
+            <div class="tab-panel" id="tab-announcements">
+                <div class="section-title">
+                    <span class="section-title-icon">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                    </span>
+                    Notices
+                </div>
+                <div id="annList"></div>
+            </div>
+
+            <div class="tab-panel" id="tab-trips">
+                <div class="section-title">
+                    <span class="section-title-icon">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 8v4l3 3" /><circle cx="12" cy="12" r="10" />
+                        </svg>
+                    </span>
+                    Trip History
+                </div>
+                <div class="list-stack" id="tripList"></div>
+            </div>
+
+            <div class="tab-panel" id="tab-profile">
+                <div class="section-title">
+                    <span class="section-title-icon">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                        </svg>
+                    </span>
+                    My Profile
+                </div>
+                <div class="profile-header-card">
+                    <div class="profile-cover">
+                        <div class="profile-avatar-wrap" id="profAvatarLarge">?</div>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="profNameDisplay">—</div>
+                        <div class="profile-role-tag">Driver · Collector</div>
+                        <div class="profile-email" id="profEmailDisplay">—</div>
+                    </div>
+                </div>
+                <div class="form-card">
+                    <form id="profileForm">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Full Name</label><input type="text"
+                                    id="profName" class="form-control"></div>
+                            <div class="form-group"><label class="form-label">Phone</label><input type="text"
+                                    id="profPhone" class="form-control"></div>
+                        </div>
+                        <div class="form-group"><label class="form-label">Address</label><input type="text"
+                                id="profAddress" class="form-control"></div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="logoutConfirmModal">
+        <div class="modal" style="max-width:400px;">
+            <div class="modal-header">
+                <div class="modal-title" style="color:var(--red);">Confirm Logout</div>
+                <button class="modal-close" onclick="closeModal('logoutConfirmModal')" aria-label="Close">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to sign out of the driver portal? Your GPS tracking will stop.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('logoutConfirmModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="doLogout()">Yes, Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+    <script src="{{ asset('js/driver/dashboard.js') }}"></script>
+
+    <!-- Real-time (Laravel Reverb via Laravel Echo). Loaded after
+         dashboard.js on purpose — see echo-bridge.js for why. -->
+    <script src="https://unpkg.com/pusher-js@8.4/dist/web/pusher.min.js"></script>
+    <script src="https://unpkg.com/laravel-echo@1.16/dist/echo.iife.js"></script>
+    <script>
+        window.__reverbConfig = {
+            key: "{{ config('broadcasting.connections.reverb.key') }}",
+            host: "{{ env('REVERB_HOST', request()->getHost()) }}",
+            port: {{ env('REVERB_PORT', 8080) }},
+            scheme: "{{ env('REVERB_SCHEME', 'http') }}",
+        };
+    </script>
+    <script src="{{ asset('js/driver/echo-bridge.js') }}"></script>
+
+    <!-- Resident <-> driver chat widget -->
+    <script src="{{ asset('js/chat-widget.js') }}"></script>
+    <script>
+        (function () {
+            let user = {};
+            try { user = JSON.parse(localStorage.getItem('user') || '{}'); } catch (e) {}
+            initChatWidget({
+                role: 'driver',
+                token: localStorage.getItem('token'),
+                currentUserId: (user && user.id) || (typeof driverId !== 'undefined' ? driverId : null),
+                apiBase: '/api',
+            });
+        })();
+    </script>
+</body>
+
+</html>

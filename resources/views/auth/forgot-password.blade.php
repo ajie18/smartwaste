@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanCity — Account Recovery</title>
+    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+    <style>
+        .step {
+            opacity: 1;
+            transition: opacity 0.15s ease-in-out;
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <!-- Left Hero Area (Desktop View Only) -->
+        <div class="left">
+            <div class="brand-logo">
+                <div class="brand-icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
+                        xmlns="http://w3.org">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                        </path>
+                    </svg>
+                </div>
+                <div class="brand-name">
+                    CleanCity
+                    <span>Jose Dalman · Zamboanga del Norte</span>
+                </div>
+            </div>
+            <h1 class="hero-headline">Recover Your <em>Account.</em></h1>
+            <p class="hero-sub">Enter your registered email and we'll send a 6-digit code to your phone to reset your
+                password.</p>
+        </div>
+
+        <!-- Right Form Module Container -->
+        <div class="right">
+            <main class="card">
+                <div id="alertBox" class="alert" aria-live="polite"></div>
+
+
+                <section id="step1" class="step active">
+                    <header class="card-header">
+                        <h2 class="card-title">Forgot password</h2>
+                        <p class="card-sub">We'll text a 6-digit code to your registered phone number.</p>
+                    </header>
+
+                    <form onsubmit="return false;">
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <div class="input-wrap">
+                                <div class="input-icon">
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                        xmlns="http://w3.org">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <input class="form-input" type="email" id="email" placeholder="you@example.com"
+                                    required autocomplete="email">
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn" id="sendPinBtn">
+                            <span class="btn-text">Send Verification PIN</span>
+                            <span class="btn-loader" hidden><span class="spinner"></span> Sending…</span>
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Step 2: Code Validation & Key Override Stage -->
+                <section id="step2" class="step">
+                    <header class="card-header">
+                        <h2 class="card-title">Enter Verification PIN</h2>
+                        <p class="card-sub">Check your phone for the code. It expires in 15 minutes.</p>
+                    </header>
+
+                    <form onsubmit="return false;">
+                        <div class="form-group">
+                            <label class="form-label" for="pin">Verification Code</label>
+                            <div class="input-wrap">
+                                <input class="form-input no-icon pin-input" type="text" id="pin"
+                                    inputmode="numeric" pattern="[0-9]*" placeholder="000000"
+                                    autocomplete="one-time-code" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group password-wrapper">
+                            <label class="form-label" for="newPassword">New Password</label>
+                            <div class="input-wrap">
+                                <div class="input-icon">
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                        xmlns="http://w3.org">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <input class="form-input" type="password" id="newPassword"
+                                    placeholder="Minimum 8 characters" required autocomplete="new-password">
+                                <button type="button" class="toggle-password" id="toggleNewPasswordBtn">Show</button>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn" id="resetBtn">
+                            <span class="btn-text">Update Password</span>
+                            <span class="btn-loader" hidden><span class="spinner"></span> Updating…</span>
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" id="resendBtn">Use a different email
+                            address</button>
+                    </form>
+                </section>
+
+                <div class="divider"></div>
+
+                <footer class="card-foot">
+                    <a href="{{ route('login') }}">← Back to sign in portal</a>
+                </footer>
+            </main>
+        </div>
+    </div>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    <script src="{{ asset('js/forgot-password.js') }}"></script>
+</body>
+
+</html>

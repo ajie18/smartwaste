@@ -1,0 +1,267 @@
+@extends('layouts.admin', ['active' => 'trucks', 'cssFile' => 'trucks'])
+
+@section('title', 'Trucks')
+@section('page-title', 'Trucks')
+
+@push('head')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+@endpush
+
+@section('topbar-actions')
+    <button class="topbar-btn" onclick="openModal('addTruckModal')">+ Add Truck</button>
+@endsection
+
+@section('content')
+
+    <div class="trucks-layout">
+        <div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-title-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" /><path d="M15 18H9" />
+                                <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
+                                <circle cx="17" cy="18" r="2" /><circle cx="7" cy="18" r="2" />
+                            </svg></div>Fleet / Trucks
+                    </div>
+                    <span class="badge badge-gold" id="truckCount">0</span>
+                </div>
+                <div style="padding:0 14px 12px;">
+                    <div class="search-bar">
+                        <input type="text" placeholder="Search trucks..." id="searchInput" oninput="filterTrucks()">
+                    </div>
+                </div>
+                <div style="padding:0 14px 14px;" id="truckList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" /><path d="M15 18H9" />
+                                <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
+                                <circle cx="17" cy="18" r="2" /><circle cx="7" cy="18" r="2" />
+                            </svg></div>
+                        <div class="empty-state-text">Loading trucks...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-title-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+                                <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+                            </svg></div>Truck Details
+                    </div>
+                    <div id="detailActions" style="display:flex;gap:6px;"></div>
+                </div>
+                <div class="panel-body" id="truckDetailBody">
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" /><path d="M15 18H9" />
+                                <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
+                                <circle cx="17" cy="18" r="2" /><circle cx="7" cy="18" r="2" />
+                            </svg></div>
+                        <div class="empty-state-text">Select a truck</div>
+                        <div style="font-size:0.75rem;color:var(--text3);margin-top:4px;">Click any truck on the left</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel reveal section-gap" style="margin-top:24px;">
+        <div class="panel-header">
+            <div class="panel-title">
+                <div class="panel-title-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                    </svg></div>Fleet Map
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.72rem;color:var(--text2)">
+                <span class="pulse-dot"></span>Live tracking positions
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="info-box">
+                <strong><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                    </svg> GPS Coordinates &amp; Location Timestamps</strong>
+                <p>Each truck stores a <strong>latitude</strong>, <strong>longitude</strong>, and a
+                    <strong>location_updated_at</strong> timestamp. The coordinates pin the truck on the
+                    map below and on the resident's live tracking view.
+                </p>
+                <div class="legend">
+                    <div class="legend-item"><span style="color:#4ade80;font-size:1rem">●</span> <strong style="color:#4ade80">Green</strong> — updated &lt; 1 hour ago</div>
+                    <div class="legend-item"><span style="color:#fbb034;font-size:1rem">●</span> <strong style="color:#fbb034">Amber</strong> — 1–12 hours ago</div>
+                    <div class="legend-item"><span style="color:#f87171;font-size:1rem">●</span> <strong style="color:#f87171">Red</strong> — over 12 hours</div>
+                </div>
+            </div>
+            <div class="map-toolbar">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="map-tool-btn" onclick="centerMapOnTrucks()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
+                        </svg> Center on Trucks</button>
+                    <button class="map-tool-btn" id="fleetSatBtn" onclick="toggleFleetMapSatellite()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3" /><path d="M12 2v2" /><path d="M12 20v2" />
+                            <path d="M4.93 4.93l1.41 1.41" /><path d="M17.66 17.66l1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" />
+                            <path d="M4.93 19.07l1.41-1.41" /><path d="M17.66 6.34l1.41-1.41" />
+                        </svg> Satellite</button>
+                </div>
+                <div style="font-size:0.7rem;color:var(--text2);font-family:var(--mono)" id="mapTruckCount">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                    </svg> 0 trucks on map
+                </div>
+            </div>
+            <div id="fleetMap"></div>
+        </div>
+    </div>
+
+@endsection
+
+@section('extra-modals')
+
+    <div class="modal-overlay" id="addTruckModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" /><path d="M15 18H9" />
+                        <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
+                        <circle cx="17" cy="18" r="2" /><circle cx="7" cy="18" r="2" />
+                    </svg> Add New Truck</div>
+                <button class="modal-close" onclick="closeModal('addTruckModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Plate Number <span style="color:var(--red)">*</span></label>
+                        <input class="form-control" id="tPlate" placeholder="e.g. ABC-1234">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Model</label>
+                        <input class="form-control" id="tModel" placeholder="e.g. Isuzu NMR 71">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('addTruckModal')">Cancel</button>
+                <button class="btn btn-gold" onclick="addTruck()">Add Truck</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editTruckModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                    </svg> Edit Truck</div>
+                <button class="modal-close" onclick="closeModal('editTruckModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editTruckId">
+                <div class="form-grid form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Plate Number <span style="color:var(--red)">*</span></label>
+                        <input class="form-control" id="editPlate" placeholder="e.g. ABC-1234">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Model</label>
+                        <input class="form-control" id="editModel" placeholder="e.g. Isuzu NMR 71">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('editTruckModal')">Cancel</button>
+                <button class="btn btn-gold" onclick="saveTruckEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="updateLocModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                    </svg> Update Location</div>
+                <button class="modal-close" onclick="closeModal('updateLocModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="locTruckId">
+                <div class="info-box" style="margin-bottom:16px">
+                    <strong><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg> Manual location entry</strong>
+                    Use this when a driver reports their position verbally. The server will stamp the current time on save.
+                    <br><br>
+                    <span style="color:var(--text2);font-size:0.72rem">Tip: Right-click any spot on Google Maps → "What's here?" to copy coordinates.</span>
+                </div>
+                <div class="form-grid form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Latitude</label>
+                        <input class="form-control" id="locLat" placeholder="14.5995" type="number" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Longitude</label>
+                        <input class="form-control" id="locLng" placeholder="120.9842" type="number" step="any">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('updateLocModal')">Cancel</button>
+                <button class="btn btn-gold" onclick="updateLocation()">Update Location</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteTruckModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" style="color:var(--red);display:flex;align-items:center;gap:8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg> Delete Truck</div>
+                <button class="modal-close" onclick="closeModal('deleteTruckModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="deleteTruckId">
+                <p style="color:var(--text2);font-size:0.88rem">You are about to permanently delete:</p>
+                <div class="delete-confirm-name" id="deleteTruckName">—</div>
+                <div class="danger-note">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg> This action <strong>cannot be undone</strong>. Trucks currently assigned to an
+                    <strong>active or pending route cannot be deleted</strong> — complete or cancel
+                    those assignments first.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('deleteTruckModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDeleteTruck()">Yes, Delete Permanently</button>
+            </div>
+        </div>
+    </div>
+
+@endsection
+
+@push('scripts')
+    <script src="{{ asset('js/admin/trucks.js') }}"></script>
+@endpush
