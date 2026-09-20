@@ -34,7 +34,7 @@
                 </div>
                 <div class="brand-name">
                     CleanCity
-                    <span>Jose Dalman · Zamboanga del Norte</span>
+                    <span>Sindangan · Zamboanga del Norte</span>
                 </div>
             </div>
             <h1 class="hero-headline">Recover Your <em>Account.</em></h1>

@@ -102,7 +102,7 @@ class SmsService
             ? " Type: {$options['pickupType']}."
             : '';
 
-        $message = "SmartWaste: Trash collection is scheduled TODAY{$zone}.{$truck}{$type} Please put out your garbage. - MENRO Jose Dalman";
+        $message = "SmartWaste: Trash collection is scheduled TODAY{$zone}.{$truck}{$type} Please put out your garbage. - MENRO Sindangan";
 
         return $this->sendSMS($phone, $message);
     }

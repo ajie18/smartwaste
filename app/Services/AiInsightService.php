@@ -45,7 +45,7 @@ class AiInsightService
         }
 
         $prompt = <<<PROMPT
-        You are an operations analyst for a municipal waste-management department (SmartWaste, Jose Dalman). Below is a JSON snapshot of the current reporting/pickup/fleet data.
+        You are an operations analyst for a municipal waste-management department (SmartWaste, Sindangan). Below is a JSON snapshot of the current reporting/pickup/fleet data.
 
         Write a short, plain-English analysis for a non-technical admin reading it on a dashboard:
         - 2-3 sentences on the most notable trend or pattern (e.g. report volume change, a report type spiking, completion-rate issues).

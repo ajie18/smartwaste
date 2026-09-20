@@ -339,7 +339,7 @@
                     <div>
                         <div class="form-group">
                             <label class="form-label">Facility Name <span style="color:var(--red)">*</span></label>
-                            <input class="form-control" id="mrfName" placeholder="e.g. Jose Dalman MRF"
+                            <input class="form-control" id="mrfName" placeholder="e.g. Sindangan MRF"
                                 autocomplete="off">
                         </div>
                         <div class="form-group">

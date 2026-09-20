@@ -23,7 +23,7 @@
                 </div>
                 <div class="brand-name">
                     CleanCity
-                    <span>Jose Dalman · Zamboanga del Norte</span>
+                    <span>Sindangan · Zamboanga del Norte</span>
                 </div>
             </div>
             <h1 class="hero-headline">Join Your Community's <em>Clean Future.</em></h1>
@@ -142,7 +142,7 @@
                                 </svg>
                             </div>
                             <input class="form-input" type="text" id="homeAddress"
-                                placeholder="Poblacion, Jose Dalman" autocomplete="street-address">
+                                placeholder="Poblacion, Sindangan" autocomplete="street-address">
                         </div>
                     </div>
 

@@ -23,7 +23,7 @@
                         <path d="M12 2v4M12 18v4M4.9 7.5l2.1 3.5M17 13l2.1 3.5" />
                     </svg>
                 </div>
-                <div class="brand-name">CleanCity<span>Jose Dalman · Zamboanga del Norte</span></div>
+                <div class="brand-name">CleanCity<span>Sindangan · Zamboanga del Norte</span></div>
             </div>
             <h1 class="hero-headline">Almost<br>There.<br><em>One Step Left.</em></h1>
             <p class="hero-sub">We sent a 6-digit code to your email. Enter it here, or just tap the button in the
@@ -42,7 +42,7 @@
                                 <path d="M12 2v4M12 18v4M4.9 7.5l2.1 3.5M17 13l2.1 3.5" />
                             </svg>
                         </div>
-                        <div class="brand-name">CleanCity<span>Jose Dalman · ZDN</span></div>
+                        <div class="brand-name">CleanCity<span>Sindangan · ZDN</span></div>
                     </div>
                     <div class="mobile-brand-sub">Verify your email</div>
                 </div>

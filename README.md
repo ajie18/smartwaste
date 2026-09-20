@@ -8,6 +8,7 @@ driver portal, resident portal, and now real-time push via Laravel Reverb.
 
 **Chat** (`app/Models/ChatConversation`, `ChatMessage`;
 `app/Http/Controllers/Chat/ChatController`; `public/js/chat-widget.js`):
+
 - One thread per resident/driver pair (`chat_conversations` has a unique
   constraint on the pair), reused across pickups rather than spawning a
   new thread every day.
@@ -33,6 +34,7 @@ driver portal, resident portal, and now real-time push via Laravel Reverb.
 
 **AI Insights** (`App\Services\AiInsightService`;
 `Admin\AiInsightController`): wraps the Anthropic Messages API.
+
 - `GET /api/admin/ai/analytics-insight` — gathers the same report/pickup/
   fleet numbers the Analytics page already shows, asks Claude for a
   ~150-word plain-English summary (trends, what needs attention, 2-3
@@ -82,6 +84,49 @@ wired up):
 php artisan reverb:start
 ```
 
+## Deploy on Railway
+
+This repository includes a `Dockerfile` and `railway.json`. In Railway,
+create a project, deploy this repository, and add a MySQL service. Railway
+will build the PHP/Apache image, serve Laravel from `public/`, run the
+migrations, and expose the `/up` health check.
+
+Add these variables to the Laravel service. The `MYSQL*` values can be
+copied from the linked Railway MySQL service, or use Railway's variable
+references in the dashboard:
+
+```text
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://<your-railway-domain>
+APP_KEY=<output of php artisan key:generate --show>
+DB_CONNECTION=mysql
+DB_HOST=${{MySQL.MYSQLHOST}}
+DB_PORT=${{MySQL.MYSQLPORT}}
+DB_DATABASE=${{MySQL.MYSQLDATABASE}}
+DB_USERNAME=${{MySQL.MYSQLUSER}}
+DB_PASSWORD=${{MySQL.MYSQLPASSWORD}}
+SESSION_DRIVER=file
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+BROADCAST_CONNECTION=log
+```
+
+Generate `APP_KEY` locally with `php artisan key:generate --show`; do not
+commit `.env`. Set `SANCTUM_STATEFUL_DOMAINS` to the Railway hostname if
+you later use Sanctum's cookie authentication. Uploaded announcement
+images are stored in the container filesystem by default, so attach a
+Railway volume mounted at `/var/www/html/storage/app/public` when those
+uploads must survive redeploys.
+
+Reverb is a separate long-running process and should be deployed as a
+second Railway service from this repository with the start command
+`php artisan reverb:start --host=0.0.0.0 --port=$PORT`. Keep its
+`REVERB_APP_*` values aligned with the web service and set the browser
+client's public Reverb host to that service's public domain. The web
+service can run with `BROADCAST_CONNECTION=log` if real-time updates are
+not needed.
+
 **Defaults are deliberately zero-setup**: `SESSION_DRIVER`, `CACHE_STORE`
 are `file` and `QUEUE_CONNECTION` is `sync` in `.env.example` — no extra
 `sessions`/`cache`/`jobs` tables needed. The only required external
@@ -98,7 +143,7 @@ isn't running.
   real `login.html` / `register.html` / `forgot-password.html` /
   `verify-email.html`**, converted mechanically (asset paths → `asset()`,
   internal links → `route()`). The JS (`public/js/{login,register,
-  forgot-password,verify-email}.js`) is copied over unmodified — it already
+forgot-password,verify-email}.js`) is copied over unmodified — it already
   talks to `/api/auth/*`, which matches `routes/api.php` exactly.
 - **`App\Services\SmsService`** — rewritten to match your real `sms.js`
   (IPROG SMS API), not the earlier Semaphore guess. `normalizePhone()`,
@@ -130,6 +175,7 @@ first-party WebSocket server (Pusher-protocol compatible), so nothing
 external needs to be provisioned.
 
 **Server side:**
+
 - `config/broadcasting.php` — `reverb` is the default connection.
 - `bootstrap/app.php` — `withBroadcasting(routes/channels.php, ['middleware' => ['auth:sanctum']])`
   registers `/broadcasting/auth`, guarded by the same Sanctum token the
@@ -147,6 +193,7 @@ external needs to be provisioned.
   `Admin\AnnouncementController::store` all fire it at the right moments.
 
 **Client side (driver dashboard only, for now):**
+
 - `resources/views/driver/dashboard.blade.php` loads `pusher-js` +
   `laravel-echo` from a CDN (no npm/Vite build needed for this
   vanilla-JS app) after `dashboard.js`, then
@@ -183,7 +230,7 @@ bug that would have completely broken the app on first request:
    Every single controller in the app — all 14 of them — declares
    `class X extends Controller`, but the file itself was never created.
    This would have been a fatal `Class "App\Http\Controllers\Controller"
-   not found` error on the *first* request to *any* route. Found by
+not found` error on the _first_ request to _any_ route. Found by
    cross-referencing every `App\...` class reference in the codebase
    against what actually exists on disk; added the missing file (it's
    supposed to be an empty abstract base class — that's normal, not a
@@ -254,7 +301,7 @@ not a redundant one.
    `.bg`, `.mobile-brand`, `.step`/`.step.active`, `.success-state`, and
    `.success-icon` classes that **don't exist in `auth.css` at all** —
    `.bg`/`.mobile-brand`/`.step` are only defined in `login.css`, and
-   `.success-state`/`.success-icon` aren't in *any* of the three files.
+   `.success-state`/`.success-icon` aren't in _any_ of the three files.
    As shipped, `verify-email.html` will render with its background image,
    mobile header, and success checkmark screen completely unstyled.
    `forgot-password.html` is fine either way — it carries its own inline

@@ -23,7 +23,7 @@
                 </div>
                 <div class="brand-name">
                     CleanCity
-                    <span>Jose Dalman · Zamboanga del Norte</span>
+                    <span>Sindangan · Zamboanga del Norte</span>
                 </div>
             </div>
             <h1 class="hero-headline">Clean City. <em>Smarter</em> Collection.</h1>
