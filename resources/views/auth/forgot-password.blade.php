@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CleanCity — Account Recovery</title>
-    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/auth.css') }}?v={{ filemtime(public_path('css/auth.css')) }}">
     <style>
         .step {
             opacity: 1;
@@ -131,7 +131,7 @@
         </div>
     </div>
     <div id="sidebarOverlay" class="sidebar-overlay"></div>
-    <script src="{{ asset('js/forgot-password.js') }}"></script>
+    <script src="{{ asset('js/forgot-password.js') }}?v={{ filemtime(public_path('js/forgot-password.js')) }}"></script>
 </body>
 
 </html>

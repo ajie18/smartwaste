@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CleanCity — Resident Registration</title>
-    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/auth.css') }}?v={{ filemtime(public_path('css/auth.css')) }}">
 </head>
 
 <body>
@@ -160,7 +160,7 @@
             </main>
         </div>
     </div>
-    <script src="{{ asset('js/register.js') }}"></script>
+    <script src="{{ asset('js/register.js') }}?v={{ filemtime(public_path('js/register.js')) }}"></script>
 </body>
 
 </html>

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CleanCity · Verify Email</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/auth.css') }}?v={{ filemtime(public_path('css/auth.css')) }}">
 </head>
 
 <body>
@@ -100,7 +100,7 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/verify-email.js') }}"></script>
+    <script src="{{ asset('js/verify-email.js') }}?v={{ filemtime(public_path('js/verify-email.js')) }}"></script>
 </body>
 
 </html>
