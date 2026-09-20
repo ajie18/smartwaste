@@ -7,7 +7,7 @@ sed -i "s/*:80>/*:${PORT}>/g" /etc/apache2/sites-available/000-default.conf
 
 php artisan package:discover --ansi
 php artisan migrate --force
-php artisan storage:link || true
+php artisan storage:link --force
 php artisan config:cache
 php artisan view:cache
 
