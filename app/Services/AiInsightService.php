@@ -21,7 +21,9 @@ class AiInsightService
 
     private function apiKey(): ?string
     {
-        return config('services.groq.api_key');
+        $key = config('services.groq.api_key') ?: env('GROQ_API_KEY');
+
+        return is_string($key) ? trim($key) : null;
     }
 
     private function model(): string

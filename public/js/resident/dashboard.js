@@ -333,7 +333,7 @@ async function loadFallbackMRF() {
     try {
         const mrf = await apiFetch('/api/resident/mrf-location');
         if (!mrf || !mrf.latitude || !mrf.longitude) return;
-        // MRF marker: emoji left as-is by design
+        // MRF (recycling facility) marker — distinct violet color from the truck/user markers
         const icon = L.divIcon({
             className: "",
             html: `<div class="mrf-wrap"><div class="mrf-pulse-ring"></div><div class="mrf-pin"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="1"/><rect x="6" y="4" width="3" height="6"/><rect x="13" y="6" width="3" height="4"/><rect x="10" y="15" width="4" height="6"/></svg></span></div></div>`,
@@ -342,7 +342,7 @@ async function loadFallbackMRF() {
         });
         fallbackMRF = L.marker([mrf.latitude, mrf.longitude], { icon, zIndexOffset: 400, opacity: 0.55 })
             .addTo(map)
-            .bindPopup(`<b style="color:#2dd4a0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="1"/><rect x="6" y="4" width="3" height="6"/><rect x="13" y="6" width="3" height="4"/><rect x="10" y="15" width="4" height="6"/></svg> ${mrf.name || 'MRF'}</b>`);
+            .bindPopup(`<b style="color:#8b5cf6"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="1"/><rect x="6" y="4" width="3" height="6"/><rect x="13" y="6" width="3" height="4"/><rect x="10" y="15" width="4" height="6"/></svg> ${mrf.name || 'MRF'}</b>`);
     } catch (e) {
         console.warn('MRF lookup failed:', e);
     }
@@ -459,7 +459,7 @@ function showRouteWithTrail(routeData) {
     }));
 
     mrfStops.forEach((m, i) => {
-        // MRF marker: emoji left as-is by design
+        // MRF (recycling facility) marker — distinct violet color from the truck/user markers
         const icon = L.divIcon({
             className: "",
             html: `<div class="mrf-wrap" id="mrfWrap${i}"><div class="mrf-pulse-ring"></div><div class="mrf-pin" id="mrfPin${i}"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="1"/><rect x="6" y="4" width="3" height="6"/><rect x="13" y="6" width="3" height="4"/><rect x="10" y="15" width="4" height="6"/></svg></span></div></div>`,
@@ -468,7 +468,7 @@ function showRouteWithTrail(routeData) {
         });
         mrfMarkers.push(
             L.marker([m.lat, m.lng], { icon, zIndexOffset: 600 })
-                .bindPopup(`<b style="color:#2dd4a0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="1"/><rect x="6" y="4" width="3" height="6"/><rect x="13" y="6" width="3" height="4"/><rect x="10" y="15" width="4" height="6"/></svg> ${m.name}</b>`)
+                .bindPopup(`<b style="color:#8b5cf6"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="1"/><rect x="6" y="4" width="3" height="6"/><rect x="13" y="6" width="3" height="4"/><rect x="10" y="15" width="4" height="6"/></svg> ${m.name}</b>`)
                 .addTo(map)
         );
     });
@@ -613,12 +613,13 @@ function placeTruckMarker(lat, lng, animate = true) {
             updateRouteProgress(lat, lng);
         }
     } else {
-        // Truck marker: emoji left as-is by design
+        // Collection truck marker — sized up with a pulsing ring so it reads
+        // as the primary "live" thing to watch on the map.
         const icon = L.divIcon({
             className: "",
-            html: `<div class="truck-marker"><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></span></div>`,
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
+            html: `<div class="truck-marker-wrap"><div class="truck-pulse-ring"></div><div class="truck-marker"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></div></div>`,
+            iconSize: [38, 38],
+            iconAnchor: [19, 19]
         });
         truckMarker = L.marker([lat, lng], { icon, zIndexOffset: 1000 })
             .bindPopup('<b><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg> Collection Truck</b>')
@@ -645,7 +646,7 @@ async function loadResidentLocations() {
         });
         list.forEach(r => {
             const fresh = (Date.now() - new Date(r.location_updated_at || 0).getTime()) < 5 * 60 * 1000;
-            // Resident (house) marker: emoji left as-is by design
+            // Resident (other people sharing location) marker
             const icon = L.divIcon({
                 className: "",
                 html: `<div class="resident-pin ${fresh ? 'fresh' : 'stale'}"><span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span></div>`,
@@ -674,7 +675,7 @@ function haversineKm(lat1, lng1, lat2, lng2) {
 function updateDistanceHUD() {
     if (userLat === null || truckLat === null) return;
     const km = haversineKm(userLat, userLng, truckLat, truckLng);
-    // Truck emoji left as-is by design
+    // Distance-to-truck text with truck icon
     const distanceText = km < 1 ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg> Truck is ~${Math.round(km * 1000)} m away` : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg> Truck is ~${km.toFixed(2)} km away`;
     const distanceEl = document.getElementById('distanceText');
     if (distanceEl) distanceEl.textContent = distanceText;
@@ -702,9 +703,9 @@ function placeUserMarker(lat, lng, accuracy) {
     } else {
         const icon = L.divIcon({
             className: "",
-            html: `<div class="user-marker"></div>`,
-            iconSize: [14, 14],
-            iconAnchor: [7, 7]
+            html: `<div class="user-marker-wrap"><div class="user-pulse-ring"></div><div class="user-marker"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="22" y1="12" x2="19" y2="12"/><line x1="5" y1="12" x2="2" y2="12"/></svg></div></div>`,
+            iconSize: [26, 26],
+            iconAnchor: [13, 13]
         });
         userMarker = L.marker([lat, lng], { icon, zIndexOffset: 500 })
             .bindPopup(`<b>${ICON_PIN}You</b>`)
