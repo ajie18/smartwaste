@@ -21,14 +21,14 @@ class AiInsightService
 
     private function apiKey(): ?string
     {
-        $key = config('services.groq.api_key') ?: env('GROQ_API_KEY');
+        $key = config('services.groq.api_key') ?: getenv('GROQ_API_KEY');
 
         return is_string($key) ? trim($key) : null;
     }
 
     private function model(): string
     {
-        return config('services.groq.model', 'llama-3.3-70b-versatile');
+        return config('services.groq.model') ?: (getenv('GROQ_MODEL') ?: 'llama-3.3-70b-versatile');
     }
 
     public function isConfigured(): bool
@@ -118,14 +118,18 @@ class AiInsightService
                 ]);
 
             if (!$response->successful()) {
-                Log::error('Groq API error: ' . $response->body());
-                return 'AI request failed — check the application log for details.';
+                $error = $response->json('error.message') ?: $response->reason();
+                Log::error('Groq API error', [
+                    'status' => $response->status(),
+                    'error' => $error,
+                ]);
+                return sprintf('AI request failed (%d): %s', $response->status(), $error);
             }
 
             return (string) $response->json('choices.0.message.content', '');
         } catch (\Throwable $e) {
             Log::error('Groq API exception: ' . $e->getMessage());
-            return 'AI request failed — check the application log for details.';
+            return 'AI request failed: ' . $e->getMessage();
         }
     }
 

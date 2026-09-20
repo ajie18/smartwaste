@@ -25,12 +25,12 @@ async function api(method, path, body) {
     if (res.status === 401) {
         localStorage.removeItem("token");
         window.location.href = "/login.html";
-        throw new Error("Your session has expired. Please sign in again.");
     }
     if (!res.ok) {
-        const errBody = await readApiError(res);
+        let errBody = {};
+        try { errBody = await res.json(); } catch (_) { }
         console.error(`[API ${res.status}] ${method} ${BASE + path}`, errBody);
-        throw new Error(errBody.error || errBody.message || `Request failed (${res.status})`);
+        throw new Error(errBody.error || `Request failed (${res.status})`);
     }
     return res.json();
 }
@@ -38,25 +38,13 @@ async function api(method, path, body) {
 async function apiRaw(url, options = {}) {
     const opts = { ...options, headers: { ...hdrs(), ...(options.headers || {}) } };
     const res = await fetch(url, opts);
-    if (res.status === 401) {
-        localStorage.removeItem("token");
-        window.location.href = "/login.html";
-        throw new Error("Your session has expired. Please sign in again.");
-    }
     if (!res.ok) {
-        const errBody = await readApiError(res);
-        console.error(`[API ${res.status}] ${url}`, errBody);
-        throw new Error(errBody.error || errBody.message || `${res.status} ${res.statusText} on ${url}`);
+        let bodyText = '';
+        try { bodyText = await res.text(); } catch (_) { }
+        console.error(`[API ${res.status}] ${url}`, bodyText);
+        throw new Error(`${res.status} ${res.statusText} on ${url}`);
     }
     return res.json();
-}
-
-async function readApiError(res) {
-    const contentType = res.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-        try { return await res.json(); } catch (_) { }
-    }
-    try { return { error: (await res.text()).trim() }; } catch (_) { return {}; }
 }
 
 function toast(msg, type = "info") {
@@ -281,12 +269,162 @@ let currentAssignmentId = null;
 let routeStatus = null;
 
 function connectWebSocket() {
-    // Socket.IO is not used by the Laravel backend. Echo/Reverb is loaded
-    // after this file and owns realtime updates through echo-bridge.js.
-    socket = null;
-    socketConnected = false;
-    updateConnectionStatus(false);
-    console.log('Realtime: Socket.IO disabled — waiting for Laravel Echo/Reverb');
+    // No Socket.IO server behind the Laravel backend (see BASE comment
+    // above) — stay in REST-fallback mode permanently. `socket` stays
+    // null/`socketConnected` stays false, so every emit* helper below
+    // takes its REST branch instead.
+    if (typeof io === 'undefined') {
+        console.log('Realtime: Socket.IO not available — using REST polling fallback');
+        updateConnectionStatus(false);
+        return;
+    }
+
+    if (socket && socket.connected) return;
+
+    console.log('Connecting WebSocket...');
+    socket = io(WS_URL, {
+        transports: ['websocket', 'polling'],
+        auth: { token: token },
+        reconnection: true,
+        reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        timeout: 20000
+    });
+
+    socket.on('connect', () => {
+        console.log('WebSocket connected');
+        socketConnected = true;
+        reconnectAttempts = 0;
+        updateConnectionStatus(true);
+        toast('Real-time connection established', 'success');
+        socket.emit('driver-auth', { driverId, token });
+    });
+
+    socket.on('connect_error', (error) => {
+        console.error('WebSocket connection error:', error);
+        socketConnected = false;
+        updateConnectionStatus(false);
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            reconnectAttempts++;
+            setTimeout(() => {
+                if (!socketConnected) connectWebSocket();
+            }, 2000 * reconnectAttempts);
+        }
+    });
+
+    socket.on('disconnect', (reason) => {
+        console.log('WebSocket disconnected:', reason);
+        socketConnected = false;
+        updateConnectionStatus(false);
+        if (reason === 'io server disconnect') {
+            setTimeout(connectWebSocket, 3000);
+        }
+    });
+
+    socket.on('auth-success', (data) => {
+        console.log('Authenticated:', data.message);
+        toast(`Welcome ${data.driver.name}!`, 'success');
+    });
+
+    socket.on('auth-error', (data) => {
+        console.error('Auth error:', data.message);
+        toast('Authentication failed: ' + data.message, 'error');
+    });
+
+    socket.on('assignment-update', (payload) => {
+        console.log('Assignment update received:', payload);
+        todaysAssignments = Array.isArray(payload) ? payload : (payload ? [payload] : []);
+        renderRouteTabs();
+        const idx = activeAssignmentIdx < todaysAssignments.length ? activeAssignmentIdx : pickDefaultIndex();
+        selectAssignment(idx);
+    });
+
+    socket.on('route-waypoints', (data) => {
+        console.log('Route waypoints received:', data);
+        if (data.waypoints) {
+            const parsed = parseWaypointsJson(data.waypoints);
+            if (parsed.road.length || parsed.pins.length || parsed.mrfs.length) {
+                showRouteFromData(parsed);
+            }
+        }
+    });
+
+    socket.on('stats-update', (stats) => {
+        console.log('Stats update:', stats);
+        if (stats) {
+            document.getElementById('statCompleted').textContent = stats.completed || 0;
+            document.getElementById('statTotal').textContent = stats.total || 0;
+            document.getElementById('statPending').textContent = stats.pending || 0;
+        }
+    });
+
+    socket.on('assignment-status-changed', (data) => {
+        console.log('Status changed:', data);
+        routeStatus = data.status;
+        toast(`Route status: ${data.status}`, 'info');
+        loadToday();
+
+        if (data.status === 'completed' || data.status === 'cancelled') {
+            if (currentAssignmentId) {
+                localStorage.removeItem(`driver_progress_${currentAssignmentId}`);
+            }
+        }
+    });
+
+    socket.on('new-announcement', (data) => {
+        console.log('New announcement:', data);
+        toast(`${data.title || 'New announcement'}`, 'info');
+        loadAnnouncements();
+        const badge = document.getElementById('annBadge');
+        if (badge) {
+            const current = parseInt(badge.textContent) || 0;
+            badge.textContent = current + 1;
+            badge.style.display = 'flex';
+        }
+    });
+
+    socket.on('report-submitted', (data) => {
+        console.log('Report submitted:', data);
+        toast('Report submitted successfully!', 'success');
+    });
+
+    socket.on('profile-updated', (data) => {
+        console.log('Profile updated:', data);
+        toast('Profile saved successfully!', 'success');
+        loadProfile();
+    });
+
+    socket.on('status-updated', (data) => {
+        console.log('Status updated:', data);
+        toast(data.message, 'success');
+        loadToday();
+        loadStats();
+    });
+
+    socket.on('error', (data) => {
+        console.error('Socket error:', data);
+        toast(data.message || 'An error occurred', 'error');
+    });
+
+    socket.on('driver-moved', (data) => {
+        if (data.driverId !== driverId) {
+        }
+    });
+
+    socket.on('driver-disconnected', (data) => {
+        console.log('Driver disconnected:', data.driverId);
+    });
+
+    socket.on('report-status-changed', (data) => {
+        if (!data || !data.reportId) return;
+        if (data.status && data.status !== 'pending' && data.status !== 'in_progress') {
+            allIssues = allIssues.filter(r => r.id !== data.reportId);
+            renderIssueMarkers();
+            renderIssuesListPanel();
+            updateIssuesBadge();
+        }
+    });
 }
 
 function updateConnectionStatus(connected) {
@@ -302,8 +440,6 @@ function updateConnectionStatus(connected) {
 }
 
 function emitLocation(lat, lng, accuracy) {
-    if (!currentAssignmentId) return;
-
     const payload = { latitude: lat, longitude: lng, accuracy: accuracy || 0, assignmentId: currentAssignmentId, timestamp: Date.now() };
     if (socket && socketConnected) {
         socket.emit('driver-location', payload);
@@ -740,7 +876,7 @@ function showRouteFromData(routeData) {
             .addTo(dMap)
             .bindPopup(isPassed
                 ? `<strong style="color:#94a3b8">MRF ${m.name}</strong><br><span style="color:#22c55e">Already passed</span>`
-                : `<strong style="color:#22c55e">MRF ${m.name}</strong><br><span style="color:#7a8499">MRF Collection Point</span>`);
+                : `<strong style="color:#8b5cf6">MRF ${m.name}</strong><br><span style="color:#7a8499">MRF Collection Point</span>`);
         mrfMarkers.push(marker);
     });
 
@@ -889,7 +1025,7 @@ function updateRouteProgress(lat, lng) {
 async function loadResidents() {
     if (!dMap) return;
     try {
-        const residents = await api("GET", "/resident-locations");
+        const residents = await apiRaw("/api/resident/resident-locations");
         const seen = new Set();
         residents.forEach(r => {
             if (!r.latitude || !r.longitude) return;

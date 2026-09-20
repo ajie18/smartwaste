@@ -672,9 +672,19 @@ function gotoMyLocation() {
         pos => {
             if (markingMap) {
                 markingMap.setView([pos.coords.latitude, pos.coords.longitude], 16);
+                showToast(`Location found ±${Math.round(pos.coords.accuracy || 30)}m`, 'success');
             }
         },
-        () => showToast('Could not get location', 'error')
+        err => {
+            const messages = {
+                1: 'Location permission was denied. Allow location access for this site.',
+                2: 'Your location is unavailable. Check GPS or device location settings.',
+                3: 'Location request timed out. Try again outdoors or near a window.'
+            };
+            console.warn('Route geolocation error:', err);
+            showToast(messages[err.code] || 'Could not get your location', 'error');
+        },
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
 }
 
@@ -977,7 +987,12 @@ function mrfGotoMyLocation() {
         },
         err => {
             console.warn('Geolocation error:', err);
-            showToast('Could not get location. Click the map manually.', 'error');
+            const messages = {
+                1: 'Location permission was denied. Allow location access for this site.',
+                2: 'Your location is unavailable. Check GPS or device location settings.',
+                3: 'Location request timed out. Try again outdoors or near a window.'
+            };
+            showToast(`${messages[err.code] || 'Could not get your location'} You can click the map manually.`, 'error');
             if (btn) {
                 btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> My Location`;
                 btn.disabled = false;
