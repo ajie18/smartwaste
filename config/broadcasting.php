@@ -9,7 +9,7 @@ return [
     | Default Broadcaster
     |--------------------------------------------------------------------------
     */
-    'default' => env('BROADCAST_CONNECTION', 'reverb'),
+    'default' => env('BROADCAST_CONNECTION', 'log'),
 
     /*
     |--------------------------------------------------------------------------
