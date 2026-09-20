@@ -12,7 +12,7 @@ ENV PORT=8080
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libicu-dev libonig-dev libzip-dev \
     && docker-php-ext-install bcmath intl mbstring pdo_mysql zip \
-    && (a2dismod mpm_event mpm_worker || true) \
+    && rm -f /etc/apache2/mods-enabled/mpm_*.load /etc/apache2/mods-enabled/mpm_*.conf \
     && a2enmod mpm_prefork rewrite \
     && rm -rf /var/lib/apt/lists/*
 
