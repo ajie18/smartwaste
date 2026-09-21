@@ -1650,9 +1650,7 @@ window.markIssueResolved = markIssueResolved;
     let attempts = 0;
     const tryAttach = () => {
         if (!socket) {
-            // No Socket.IO server (see connectWebSocket) — give up after a
-            // few tries instead of polling forever. New reports still show
-            // up via the periodic REST refresh (loadOpenReports, every 30s).
+
             if (++attempts < 5) setTimeout(tryAttach, 300);
             return;
         }

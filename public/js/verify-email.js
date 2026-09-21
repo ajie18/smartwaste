@@ -92,7 +92,6 @@ document.addEventListener("keydown", e => {
     if (e.key === "Enter" && document.getElementById("stepPin").classList.contains("active")) verifyPin();
 });
 
-// Pre-fill from ?email= and react to link-click redirects (?verified=1 / ?error=...)
 (function init() {
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email");

@@ -26,7 +26,6 @@ function showToast(message, type) {
     }, 4000);
 }
 
-// ── MODAL HELPERS ──
 function openModal(id) {
     const el = document.getElementById(id);
     if (el) {

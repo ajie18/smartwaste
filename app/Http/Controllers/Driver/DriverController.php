@@ -21,13 +21,7 @@ class DriverController extends Controller
         return Carbon::now('Asia/Manila')->toDateString();
     }
 
-    /**
-     * Any assignment whose scheduled date has already passed and which
-     * never got started (still 'pending') or was left hanging mid-route
-     * ('in_progress') is flipped to 'cancelled'. Runs on the main read
-     * endpoints the driver portal hits on load, so admins never have to
-     * manually clean up stale pending rows.
-     */
+
     private function autoCancelMissedAssignments(): void
     {
         try {
@@ -40,7 +34,7 @@ class DriverController extends Controller
                 logger()->info("Auto-cancelled {$affected} missed/never-started assignment(s) before {$today}");
             }
         } catch (\Throwable $e) {
-            report($e); // never block the actual request
+            report($e);
         }
     }
 
@@ -238,7 +232,7 @@ class DriverController extends Controller
             ->orderByDesc('created_at')
             ->limit(10)
             ->get()
-            ->map(fn ($a) => [
+            ->map(fn($a) => [
                 'id'         => $a->id,
                 'title'      => $a->title,
                 'message'    => $a->message,
@@ -342,7 +336,11 @@ class DriverController extends Controller
             ->first();
 
         return response()->json($stats ?? [
-            'total' => 0, 'completed' => 0, 'pending' => 0, 'in_progress' => 0, 'cancelled' => 0,
+            'total' => 0,
+            'completed' => 0,
+            'pending' => 0,
+            'in_progress' => 0,
+            'cancelled' => 0,
         ]);
     }
 
@@ -399,7 +397,7 @@ class DriverController extends Controller
                 'trip_logs.latitude',
                 'trip_logs.longitude',
                 'trip_logs.logged_at as timestamp',
-                'routes.zone_name', // zone_name lives on routes, not route_assignments — needs the extra join
+                'routes.zone_name',
             ]);
 
         return response()->json($rows);
@@ -438,14 +436,7 @@ class DriverController extends Controller
         return response()->json(['message' => "Stop {$stopIndex} updated to {$stopStatus}"]);
     }
 
-    /**
-     * Presence data ("who's currently online") used to live in an in-memory
-     * `connectedDrivers` Map maintained by the socket.io server. With HTTP
-     * polling there's no socket registry to read from directly — back this
-     * with Laravel's cache (e.g. drivers ping a "heartbeat" endpoint that
-     * writes Cache::put("driver-online:{$id}", $data, now()->addMinutes(2)))
-     * and read all `driver-online:*` keys here instead.
-     */
+
     public function getConnectedDrivers()
     {
         return response()->json([]);
@@ -540,11 +531,11 @@ class DriverController extends Controller
         $reports = Report::with('resident:id,name')
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
-            ->where(fn ($q) => $q->whereNull('status')->orWhereIn('status', ['pending', 'in_progress']))
+            ->where(fn($q) => $q->whereNull('status')->orWhereIn('status', ['pending', 'in_progress']))
             ->orderByDesc('created_at')
             ->limit(100)
             ->get()
-            ->map(fn ($r) => [
+            ->map(fn($r) => [
                 'id'            => $r->id,
                 'type'          => $r->type,
                 'description'   => $r->description,

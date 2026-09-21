@@ -1,17 +1,4 @@
-/**
- * Laravel Echo bridge — real-time push for the driver dashboard, replacing
- * the original Socket.IO listeners (see connectWebSocket() in dashboard.js,
- * which is now a permanent no-op).
- *
- * Loaded AFTER dashboard.js as a plain (non-module) script, so it shares
- * dashboard.js's global scope directly — `allIssues`, `todaysAssignments`,
- * `toast()`, `loadToday()`, etc. below are the *same* bindings dashboard.js
- * declared with `let`/`function`, not copies. No window.* plumbing needed.
- *
- * Requires: pusher-js + laravel-echo loaded via CDN before this file (see
- * driver/dashboard.blade.php), and Reverb's public connection details
- * injected as window.__reverbConfig (also set in that same view).
- */
+
 (function () {
     if (typeof Echo === 'undefined' || typeof window.__reverbConfig === 'undefined') {
         console.warn('Echo bridge: laravel-echo or reverb config missing — falling back to REST polling only.');
@@ -52,10 +39,6 @@
         console.error('Echo connection error:', err);
     });
 
-    // ------------------------------------------------------------------
-    // Private per-driver channel — mirrors the old
-    // socket.on('assignment-status-changed' | 'report-submitted' | 'profile-updated' | 'stop-updated', ...)
-    // ------------------------------------------------------------------
     if (driverId) {
         Echo.private(`driver.${driverId}`)
             .listen('.assignment-status-changed', (data) => {
@@ -82,11 +65,6 @@
             });
     }
 
-    // ------------------------------------------------------------------
-    // Shared "reports" channel — mirrors the old socket.io broadcasts that
-    // used to go out to every connected client with io.emit(...):
-    // new-resident-report, new-announcement, report-status-changed.
-    // ------------------------------------------------------------------
     Echo.private('reports')
         .listen('.new-resident-report', (report) => {
             if (!report || !report.id) return;

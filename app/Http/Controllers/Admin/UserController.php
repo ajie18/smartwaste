@@ -56,8 +56,9 @@ class UserController extends Controller
             'role'           => $request->role ?? 'resident',
             'phone'          => $request->phone,
             'address'        => $request->address,
-            'email_verified' => true, // admin-created users are auto-verified
+            'email_verified' => true,
         ]);
+        $user->assignRole($user->role);
 
         AuditLog::create([
             'user_id' => $request->user()->id,
@@ -104,6 +105,7 @@ class UserController extends Controller
         }
 
         $user->update($data);
+        $user->syncRoles($user->role);
 
         AuditLog::create([
             'user_id' => $request->user()->id,
@@ -121,12 +123,10 @@ class UserController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        // Prevent deleting yourself
         if ($user->id === $request->user()->id) {
             return response()->json(['error' => 'You cannot delete your own account'], 400);
         }
 
-        // Check if driver has active assignments
         $hasActive = RouteAssignment::where('driver_id', $id)
             ->whereIn('status', ['pending', 'in_progress'])
             ->exists();

@@ -13,9 +13,7 @@ return [
             'throw'  => false,
         ],
 
-        // Used by Admin\AnnouncementController::saveBase64Image() via
-        // Storage::disk('public') — run `php artisan storage:link` after
-        // install so /storage/announcements/... URLs actually resolve.
+
         'public' => [
             'driver'     => 'local',
             'root'       => storage_path('app/public'),

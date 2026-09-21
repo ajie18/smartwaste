@@ -12,11 +12,6 @@ return [
 
     'guard' => ['web'],
 
-    // The driver dashboard's REST fallback + login flow store an opaque
-    // token client-side and send it as `Authorization: Bearer <token>` on
-    // every request (see AuthController::login) rather than relying on
-    // Sanctum's cookie-based SPA auth, so `stateful` above mostly doesn't
-    // matter for this app — it's here for completeness/future use.
     'expiration' => null,
 
     'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),

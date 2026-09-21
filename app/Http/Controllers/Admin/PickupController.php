@@ -14,9 +14,7 @@ use Illuminate\Support\Facades\Log;
 
 class PickupController extends Controller
 {
-    public function __construct(private SmsService $sms)
-    {
-    }
+    public function __construct(private SmsService $sms) {}
 
     private function notifyResidentsOfPickup(RouteAssignment $assignment): int
     {
@@ -78,7 +76,6 @@ class PickupController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Optional: verify the user is actually a driver
         $driver = User::where('id', $request->driver_id)->where('role', 'driver')->first();
         if (!$driver) {
             return response()->json(['error' => 'Selected user is not a driver'], 400);
@@ -93,9 +90,6 @@ class PickupController extends Controller
             'status'        => 'pending',
         ]);
 
-        // Pickup-day SMS is sent on-demand via "Notify Residents Today"
-        // (notifyPickupToday below) rather than automatically on every
-        // assignment, so admins control exactly when residents get texted.
 
         return response()->json([
             'message'    => 'Route assigned successfully',
@@ -120,7 +114,6 @@ class PickupController extends Controller
             'pickup_type'
         ]);
 
-        // Remove null values so we only update what was sent
         $data = array_filter($data, fn($value) => !is_null($value));
 
         if (empty($data)) {
@@ -145,9 +138,6 @@ class PickupController extends Controller
         return response()->json(['message' => 'Pickup schedule deleted successfully']);
     }
 
-    /**
-     * Manually trigger SMS notification for today's pickups
-     */
     public function notifyPickupToday()
     {
         $today = now()->timezone('Asia/Manila')->toDateString();

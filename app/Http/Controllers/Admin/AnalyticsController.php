@@ -9,9 +9,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AnalyticsController extends Controller
 {
-    /**
-     * Simple analytics (already exists in ReportController, but kept here too)
-     */
+
     public function index()
     {
         $typeBreakdown = Report::selectRaw('type, COUNT(*) as total')
@@ -29,16 +27,10 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    /**
-     * Export analytics to Excel (.xlsx)
-     * Requires: composer require maatwebsite/excel
-     */
+
     public function export()
     {
-        // If you prefer a simple CSV for now (no extra package):
         return $this->exportCsv();
-
-        // Later you can switch to Maatwebsite\Excel
     }
 
     private function exportCsv(): StreamedResponse

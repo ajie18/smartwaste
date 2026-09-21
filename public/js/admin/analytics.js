@@ -1,17 +1,11 @@
 const API_URL = window.location.origin + '/api';
 console.log('API URL:', API_URL);
 
-// Chart.js draws onto a <canvas>, and the Canvas 2D API cannot resolve CSS
-// custom properties — passing "var(--text2)" as a color silently fails and
-// falls back to black, which is why chart text ignored the dark/light toggle.
-// This resolves the variable to its actual computed color instead.
 function cssVar(name, fallback) {
     const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     return v || fallback || '#94a3b8';
 }
 
-// Track every chart this page creates so we can recolor them live when the
-// theme toggle is clicked, instead of only getting the right color on first load.
 const analyticsCharts = [];
 
 function refreshChartColors() {

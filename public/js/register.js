@@ -24,7 +24,6 @@ function clearAlert() {
     }
 }
 
-// Interactive Password Clear Text Toggle Handler
 document.getElementById("toggleRegisterPasswordBtn")?.addEventListener("click", function () {
     const input = document.getElementById("password");
     if (!input) return;
@@ -33,7 +32,6 @@ document.getElementById("toggleRegisterPasswordBtn")?.addEventListener("click", 
     this.style.color = isShowing ? "var(--text-2)" : "var(--gold)";
 });
 
-// Enforce numbers-only filtration logic on entry fields
 document.getElementById("phone")?.addEventListener("input", function () {
     this.value = this.value.replace(/\D/g, "").slice(0, 11);
 });
@@ -42,7 +40,7 @@ function extractError(data) {
     if (!data) return "Registration failed. Please try again.";
     if (typeof data.error === "string") return data.error;
     if (typeof data.message === "string") return data.message;
-    // express-validator / Joi style
+
     if (Array.isArray(data.errors) && data.errors.length) {
         return data.errors.map(e => e.msg || e.message || e).join(" · ");
     }
@@ -84,8 +82,6 @@ async function register(e) {
 
     setLoading(btn, true);
 
-    // Do NOT send role — public register must let the server assign "resident".
-    // Field names must match what authController.register expects: name/address (not fullName/homeAddress).
     const payload = { name: fullName, phone, email, password };
     if (homeAddress) payload.address = homeAddress;
 
@@ -100,7 +96,6 @@ async function register(e) {
         try {
             data = await res.json();
         } catch (_) {
-            // non-JSON error body
         }
 
         if (res.ok) {
@@ -115,7 +110,7 @@ async function register(e) {
                     window.location = "/resident/dashboard";
                 }, 1000);
             } else if (data.requiresVerification || data.emailVerificationRequired) {
-                // Backend wants email verification before login
+
                 setTimeout(() => {
                     window.location = "/verify-email?email=" + encodeURIComponent(email);
                 }, 1200);

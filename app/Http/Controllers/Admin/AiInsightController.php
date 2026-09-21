@@ -14,15 +14,8 @@ use Illuminate\Http\Request;
 
 class AiInsightController extends Controller
 {
-    public function __construct(private AiInsightService $ai)
-    {
-    }
+    public function __construct(private AiInsightService $ai) {}
 
-    /**
-     * GET /api/admin/ai/analytics-insight
-     * Gathers the same kind of numbers the Analytics page already shows
-     * and asks Claude to turn them into a short written summary.
-     */
     public function analyticsInsight()
     {
         $typeBreakdown = Report::selectRaw('type, COUNT(*) as total')
@@ -71,11 +64,6 @@ class AiInsightController extends Controller
         ]);
     }
 
-    /**
-     * POST /api/admin/ai/reports/{id}/triage
-     * Suggests an urgency level + one-line action note for a single
-     * resident report, to help admins triage a busy queue faster.
-     */
     public function triageReport($id)
     {
         $report = Report::find($id);

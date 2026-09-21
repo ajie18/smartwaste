@@ -1,14 +1,4 @@
-/**
- * Floating resident <-> driver chat widget. Self-contained: injects its
- * own CSS and DOM, doesn't touch anything in dashboard.js. Call
- * initChatWidget({...}) once after the page's auth token is known.
- *
- * Real-time: if window.Echo exists (see echo-bridge.js on both driver and
- * resident dashboards), messages arrive instantly via the
- * `conversation.{id}` channel plus a ping on the recipient's personal
- * channel (`driver.{id}` / `resident.{id}`) for when the panel's shut.
- * Falls back to a 5s poll of the open thread if Echo isn't available.
- */
+
 (function () {
     let cfg = null;
     let state = {
@@ -239,7 +229,7 @@
         document.getElementById('chatWidgetBody').innerHTML = '<div class="chat-empty">Loading…</div>';
 
         await loadMessages(conversationId);
-        api('PUT', `/chat/conversations/${conversationId}/read`).catch(() => {});
+        api('PUT', `/chat/conversations/${conversationId}/read`).catch(() => { });
         subscribeToConversation(conversationId);
         startPolling(conversationId);
     }
@@ -277,7 +267,7 @@
         state.messages.push(msg);
         renderMessages();
         if (state.open && state.view === 'thread') {
-            api('PUT', `/chat/conversations/${msg.conversation_id}/read`).catch(() => {});
+            api('PUT', `/chat/conversations/${msg.conversation_id}/read`).catch(() => { });
         }
     }
 

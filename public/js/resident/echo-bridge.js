@@ -28,8 +28,6 @@
         console.error('Echo connection error:', err);
     });
 
-    // Shared "reports" channel — truck-location updates as the assigned
-    // truck pings its position, and new-announcement when admin publishes.
     Echo.private('reports')
         .listen('.truck-location', (data) => {
             if (typeof currentTruckId !== 'undefined' && data.truckId === currentTruckId) {
@@ -43,8 +41,7 @@
             if (typeof showToast === 'function') showToast('New announcement posted', 'info');
         })
         .listen('.assignment-public-status', () => {
-            // A route just started/completed/was cancelled somewhere —
-            // cheapest correct thing to do is re-fetch today's truck.
+
             if (typeof loadTodayTruck === 'function') loadTodayTruck();
         });
 

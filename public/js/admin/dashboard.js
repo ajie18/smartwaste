@@ -1,9 +1,6 @@
 const API_URL = window.location.origin + '/api';
 console.log('API URL:', API_URL);
 
-// Chart.js draws onto a <canvas>; the Canvas 2D API can't resolve CSS custom
-// properties, so passing "var(--text2)" as a color silently fails and falls
-// back to black regardless of theme. Resolve it to a real color instead.
 function cssVar(name, fallback) {
     const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     return v || fallback || '#94a3b8';

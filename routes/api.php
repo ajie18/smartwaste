@@ -17,11 +17,6 @@ use App\Http\Controllers\Driver\DriverController;
 use App\Http\Controllers\Resident\ResidentController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Public auth routes (no token yet)
-|--------------------------------------------------------------------------
-*/
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -29,17 +24,11 @@ Route::prefix('auth')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-    // Legacy stubs — email verification was removed, kept so old links/routes don't 404.
     Route::post('/verify-email', [AuthController::class, 'verifyEmailPin']);
     Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmailLink']);
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
 });
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated routes
-|--------------------------------------------------------------------------
-*/
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('auth')->group(function () {
@@ -49,32 +38,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/profile', [AuthController::class, 'updateProfile']);
     });
 
-    /*
-    |----------------------------------------------------------------------
-    | Chat (resident <-> driver) — open to both roles; ChatController
-    | checks the caller is one of the two participants on every action.
-    |----------------------------------------------------------------------
-    */
-    Route::prefix('chat')->middleware('role:resident,driver')->group(function () {
+
+    Route::prefix('chat')->middleware('role:resident|driver,sanctum')->group(function () {
         Route::get('/conversations', [ChatController::class, 'index']);
         Route::get('/conversations/{id}/messages', [ChatController::class, 'messages']);
         Route::post('/conversations/{id}/messages', [ChatController::class, 'send']);
         Route::put('/conversations/{id}/read', [ChatController::class, 'markRead']);
     });
 
-    /*
-    |----------------------------------------------------------------------
-    | Admin
-    |----------------------------------------------------------------------
-    */
-    Route::prefix('admin')->middleware('role:admin')->group(function () {
+    Route::prefix('admin')->middleware('role:admin,sanctum')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'stats']);
         Route::get('/analytics', [ReportController::class, 'analytics']);
         Route::get('/export-analytics', [AnalyticsController::class, 'export']);
 
-        // AI (Groq) — analytics summary + per-report triage
-        // suggestions. Degrades to a clear "not configured" message if
-        // GROQ_API_KEY isn't set, rather than erroring.
         Route::get('/ai/analytics-insight', [AiInsightController::class, 'analyticsInsight']);
         Route::post('/ai/reports/{id}/triage', [AiInsightController::class, 'triageReport']);
 
@@ -115,7 +91,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/mrf/{id}', [MRFController::class, 'update']);
         Route::delete('/mrf/{id}', [MRFController::class, 'destroy']);
 
-        // Aliases used by the routes management page.
         Route::get('/mrf-locations', [MRFController::class, 'index']);
         Route::post('/mrf-locations', [MRFController::class, 'store']);
         Route::put('/mrf-locations/{id}', [MRFController::class, 'update']);
@@ -123,13 +98,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/resident-locations', [ResidentController::class, 'getResidentLocations']);
     });
 
-    /*
-    |----------------------------------------------------------------------
-    | Driver
-    |----------------------------------------------------------------------
-    */
-    Route::prefix('driver')->middleware('role:driver')->group(function () {
-        // Canonical / descriptive routes
+
+    Route::prefix('driver')->middleware('role:driver,sanctum')->group(function () {
+
         Route::get('/today-assignment', [DriverController::class, 'getTodayAssignment']);
         Route::get('/today-route-details', [DriverController::class, 'getTodayRouteDetails']);
         Route::put('/assignments/{id}/status', [DriverController::class, 'updateAssignmentStatus']);
@@ -152,7 +123,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/performance-stats', [DriverController::class, 'getPerformanceStats']);
         Route::get('/connected-drivers', [DriverController::class, 'getConnectedDrivers']);
 
-        // Drivers need the same live resident locations for their map.
         Route::get('/resident-locations', [ResidentController::class, 'getResidentLocations']);
 
         Route::get('/notifications', [DriverController::class, 'getNotifications']);
@@ -161,26 +131,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/profile', [DriverController::class, 'getProfile']);
         Route::put('/profile', [DriverController::class, 'updateProfile']);
 
-        // Short-path aliases expected verbatim by public/js/driver/dashboard.js
-        // (ported as-is from the original Express + Socket.IO driver portal,
-        // whose REST fallback paths used these exact names).
         Route::get('/today', [DriverController::class, 'getTodayAssignment']);
         Route::get('/schedule', [DriverController::class, 'getMySchedule']);
         Route::get('/trips', [DriverController::class, 'getTripHistory']);
         Route::patch('/assignment/{id}/status', [DriverController::class, 'updateAssignmentStatus']);
     });
 
-    /*
-    |----------------------------------------------------------------------
-    | Resident
-    |----------------------------------------------------------------------
-    */
-    Route::prefix('resident')->middleware('role:resident')->group(function () {
+    Route::prefix('resident')->middleware('role:resident,sanctum')->group(function () {
         Route::get('/today-truck', [ResidentController::class, 'getTodayTruck']);
         Route::get('/route-waypoints', [ResidentController::class, 'getRouteWaypoints']);
         Route::get('/pickup-schedule', [ResidentController::class, 'getPickupSchedule']);
         Route::get('/trucks/{truckId}/location', [ResidentController::class, 'getTruckLocation']);
-        // Alias for public/js/resident/dashboard.js, which calls the singular form
+
         Route::get('/truck/{truckId}/location', [ResidentController::class, 'getTruckLocation']);
 
         Route::post('/reports', [ResidentController::class, 'createReport']);
@@ -190,7 +152,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/announcements', [ResidentController::class, 'getAnnouncements']);
 
         Route::post('/location', [ResidentController::class, 'shareMyLocation']);
-        // Alias for public/js/resident/dashboard.js
         Route::post('/share-location', [ResidentController::class, 'shareMyLocation']);
         Route::get('/resident-locations', [ResidentController::class, 'getResidentLocations']);
         Route::get('/mrf-location', [ResidentController::class, 'getMRFLocation']);
@@ -199,8 +160,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/profile', [ResidentController::class, 'updateProfile']);
         Route::post('/change-password', [ResidentController::class, 'changePassword']);
 
-        // Finds/creates the chat thread with today's assigned driver —
-        // see Chat\ChatController::startWithTodaysDriver.
         Route::post('/chat/start', [ChatController::class, 'startWithTodaysDriver']);
     });
 });

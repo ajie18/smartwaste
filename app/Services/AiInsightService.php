@@ -5,16 +5,6 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Thin wrapper around the Groq Chat Completions API. Used by
- * Admin\AiInsightController for two things: turning raw analytics numbers
- * into a written summary, and suggesting an urgency/triage note for a
- * resident report.
- *
- * Requires GROQ_API_KEY (see config/services.php -> 'groq').
- * Degrades gracefully (returns a clear "not configured" message rather
- * than throwing) when the key is unset, same pattern as SmsService.
- */
 class AiInsightService
 {
     private const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -28,7 +18,10 @@ class AiInsightService
 
     private function model(): string
     {
-        return config('services.groq.model') ?: (getenv('GROQ_MODEL') ?: 'llama-3.3-70b-versatile');
+        $model = config('services.groq.model') ?: (getenv('GROQ_MODEL') ?: 'openai/gpt-oss-120b');
+
+        // Groq retired the previous default; keep old Railway variables from breaking requests.
+        return $model === 'llama-3.3-70b-versatile' ? 'openai/gpt-oss-120b' : $model;
     }
 
     public function isConfigured(): bool
@@ -36,10 +29,6 @@ class AiInsightService
         return !empty($this->apiKey());
     }
 
-    /**
-     * Turn a payload of report/pickup/fleet stats into a short written
-     * analysis: trends, anomalies, and 2-3 concrete recommendations.
-     */
     public function summarizeAnalytics(array $data): string
     {
         if (!$this->isConfigured()) {
@@ -98,7 +87,6 @@ class AiInsightService
             return $decoded;
         }
 
-        // Model didn't return clean JSON — fail soft rather than 500.
         Log::warning('AI triage returned non-JSON response: ' . $raw);
         return ['urgency' => 'unknown', 'note' => 'Could not generate a suggestion — please review manually.'];
     }

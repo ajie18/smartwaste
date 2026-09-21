@@ -13,10 +13,6 @@ return [
             'provider' => 'users',
         ],
 
-        // Required for the `auth:sanctum` middleware used throughout
-        // routes/api.php. Without this, Sanctum tokens can't be resolved
-        // into a user and every protected route 401s regardless of a
-        // valid token being sent.
         'sanctum' => [
             'driver'   => 'sanctum',
             'provider' => 'users',

@@ -20,11 +20,6 @@ class Route extends Model
         return $this->hasMany(RouteAssignment::class, 'route_id');
     }
 
-    /**
-     * Decode waypoints_json into the {road, pins, mrf} shape used
-     * throughout the frontend, mirroring parseWaypoints() from the
-     * old Node residentController.js / driverController.js.
-     */
     public function getParsedWaypointsAttribute(): array
     {
         $raw = $this->waypoints_json;
@@ -50,7 +45,7 @@ class Route extends Model
             return ['road' => [], 'pins' => $pins, 'mrf' => []];
         }
 
-        $road = array_map(fn ($v) => [
+        $road = array_map(fn($v) => [
             'lat' => (float) ($v['lat'] ?? 0),
             'lng' => (float) ($v['lng'] ?? 0),
         ], $data['road_path'] ?? $data['road'] ?? []);
@@ -65,7 +60,7 @@ class Route extends Model
             ];
         }
 
-        $mrf = array_map(fn ($m) => [
+        $mrf = array_map(fn($m) => [
             'lat'  => (float) ($m['lat'] ?? 0),
             'lng'  => (float) ($m['lng'] ?? 0),
             'name' => $m['name'] ?? 'MRF Stop',

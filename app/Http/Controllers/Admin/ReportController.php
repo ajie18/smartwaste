@@ -14,7 +14,6 @@ class ReportController extends Controller
         $query = Report::with('resident:id,name,email')
             ->orderBy('created_at', 'desc');
 
-        // Filters
         if ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
@@ -26,7 +25,6 @@ class ReportController extends Controller
         $perPage = $request->get('limit', 20);
         $reports = $query->paginate($perPage);
 
-        // Format image_url if needed
         $reports->getCollection()->transform(function ($report) {
             if ($report->image_url && !str_starts_with($report->image_url, 'data:image') && !str_starts_with($report->image_url, 'http')) {
                 $report->image_url = 'data:image/jpeg;base64,' . $report->image_url;
@@ -99,8 +97,6 @@ class ReportController extends Controller
         }
 
         $report->delete();
-
-        // Optional: Audit log
 
         return response()->json(['message' => 'Report deleted successfully']);
     }

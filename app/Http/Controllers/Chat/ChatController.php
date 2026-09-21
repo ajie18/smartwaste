@@ -12,20 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 
-/**
- * Real-time resident <-> driver chat. One conversation per resident/driver
- * pair (see the unique constraint on chat_conversations), reused across
- * pickups. Both Resident and Driver route groups point at this same
- * controller — access is checked per-conversation (must be one of the two
- * participants) rather than by role, since a thread always has exactly one
- * of each.
- */
+
 class ChatController extends Controller
 {
-    /**
-     * List the authenticated user's conversations, newest activity first,
-     * with the other participant's info and an unread count.
-     */
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -59,10 +49,6 @@ class ChatController extends Controller
         return response()->json($conversations);
     }
 
-    /**
-     * Fetch (paginated, oldest-first for display) messages in a
-     * conversation the caller is a participant of.
-     */
     public function messages(Request $request, $conversationId)
     {
         $conversation = ChatConversation::find($conversationId);
@@ -128,12 +114,8 @@ class ChatController extends Controller
             'created_at'      => $message->created_at,
         ];
 
-        // Anyone with the thread open gets it instantly...
         broadcast(new RealtimeEvent("conversation.{$conversation->id}", 'chat-message', $payload));
 
-        // ...and the recipient gets a ping on their personal channel too,
-        // so a badge/toast can appear even if they're not viewing the
-        // thread right now.
         $recipientId = $user->id === $conversation->resident_id
             ? $conversation->driver_id
             : $conversation->resident_id;
@@ -162,11 +144,7 @@ class ChatController extends Controller
         return response()->json(['message' => 'Marked as read']);
     }
 
-    /**
-     * Resident-only convenience: find or create the thread with today's
-     * assigned driver, so the resident dashboard can just call this and
-     * get a conversation id without knowing the driver's id up front.
-     */
+
     public function startWithTodaysDriver(Request $request)
     {
         $resident = $request->user();
@@ -191,7 +169,6 @@ class ChatController extends Controller
             ['route_assignment_id' => $assignment->id]
         );
 
-        // Keep pointing at the latest assignment even on an existing thread.
         if ($conversation->route_assignment_id !== $assignment->id) {
             $conversation->update(['route_assignment_id' => $assignment->id]);
         }

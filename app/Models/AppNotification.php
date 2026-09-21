@@ -4,11 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Named AppNotification (not Notification) to avoid clashing with
- * Illuminate\Notifications\Notification. Maps to the `notifications` table
- * used by the old Node driverController.js / residentController.js.
- */
 class AppNotification extends Model
 {
     protected $table = 'notifications';

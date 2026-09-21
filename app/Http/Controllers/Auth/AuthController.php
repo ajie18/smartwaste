@@ -13,9 +13,7 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function __construct(private SmsService $sms)
-    {
-    }
+    public function __construct(private SmsService $sms) {}
 
     private function logAction(?int $userId, string $action, Request $request): void
     {
@@ -30,9 +28,7 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * REGISTER — auto-verified, phone required (same behavior as authController.js).
-     */
+
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -65,6 +61,7 @@ class AuthController extends Controller
             'address'        => $request->address,
             'email_verified' => true,
         ]);
+        $user->assignRole($user->role);
 
         $this->logAction($user->id, 'User registered (auto-verified)', $request);
 
@@ -76,10 +73,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-    /**
-     * FORGOT PASSWORD — SMS PIN. Always returns a generic message so we
-     * never leak whether an email exists.
-     */
     public function forgotPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -170,10 +163,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Password updated successfully. You can now sign in.']);
     }
 
-    /**
-     * LOGIN — issues a Sanctum API token (drop-in replacement for the old
-     * jsonwebtoken-signed JWT; the frontend keeps sending it as a Bearer token).
-     */
+
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -276,7 +266,6 @@ class AuthController extends Controller
         return response()->json(['message' => 'Profile updated successfully']);
     }
 
-    // Stubs so old verify-email routes don't break — email verification was removed.
     public function verifyEmailPin()
     {
         return response()->json(['message' => 'Email verification is no longer required. You can sign in.']);

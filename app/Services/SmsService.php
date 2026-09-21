@@ -5,20 +5,10 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Laravel port of utils/sms.js — IPROG SMS API.
- * Docs: https://sms.iprogtech.com/api/v1/documentation
- * Env: IPROG_API_TOKEN (see config/services.php -> 'sms.api_key')
- */
 class SmsService
 {
     private const BASE_URL = 'https://sms.iprogtech.com/api/v1';
 
-    /**
-     * Port of normalizePhone() from sms.js — accepts +63/63/9-prefixed
-     * numbers and normalizes everything to the local 09XXXXXXXXX format
-     * IPROG expects. Returns null if it's not a valid PH mobile number.
-     */
     public function normalizePhone(?string $phone): ?string
     {
         if (!$phone) {

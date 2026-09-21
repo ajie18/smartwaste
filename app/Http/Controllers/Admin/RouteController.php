@@ -14,7 +14,6 @@ class RouteController extends Controller
     {
         $routes = Route::orderBy('created_at', 'desc')->get();
 
-        // Parse waypoints_json if stored as string
         $routes->transform(function ($route) {
             if (is_string($route->waypoints_json)) {
                 $route->waypoints_json = json_decode($route->waypoints_json, true);
@@ -107,9 +106,6 @@ class RouteController extends Controller
         return response()->json(['message' => 'Route deleted successfully']);
     }
 
-    /**
-     * Normalize waypoints to consistent structure
-     */
     private function normalizeWaypoints($waypoints)
     {
         if (empty($waypoints)) {

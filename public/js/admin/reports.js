@@ -5,7 +5,6 @@ function getToken() {
     return localStorage.getItem('token');
 }
 
-// PUT support was missing from API
 const API = {
     get: async (endpoint) => {
         return fetch(API_URL + endpoint, {
@@ -43,7 +42,6 @@ const TYPE_LABEL = {
     illegal_dumping: 'Illegal Dumping'
 };
 
-// ── State (must be declared before any function that uses them) ──
 let allReports = [];
 let allResidents = [];
 let filtered = [];
@@ -185,13 +183,10 @@ function initReportMap() {
     reportMap.invalidateSize();
 }
 
-// Free CARTO basemap key — get your own at https://carto.com/basemaps/apikey
-// (free, no card, ~1 min via email — 5M tile requests/month). Paste it below.
 const CARTO_API_KEY = "cb1_29ri_1_ec22111e95ba27720f0b3c7b";
 
 function makeTiles() {
     return {
-        // CARTO Dark Matter — detailed roads/streets, retina-sharp, zoom 20
         dark: L.tileLayer(
             'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=' + CARTO_API_KEY,
             {
@@ -201,7 +196,7 @@ function makeTiles() {
                 detectRetina: true
             }
         ),
-        // Satellite (Esri — still free, no key required)
+
         sat: L.tileLayer(
             'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
             {
@@ -209,7 +204,7 @@ function makeTiles() {
                 maxZoom: 19
             }
         ),
-        // Street/road labels overlay for satellite view — free, no API key, sharper than old Esri Reference layer
+
         label: L.tileLayer(
             'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png?key=' + CARTO_API_KEY,
             {
@@ -233,7 +228,7 @@ function applyTile(map, tiles, isSat) {
         if (tiles.label) tiles.label.addTo(map);
     } else {
         tiles.dark.addTo(map);
-        if (tiles.label) tiles.label.addTo(map);   // roads/names on dark base
+        if (tiles.label) tiles.label.addTo(map);
     }
 }
 
@@ -693,14 +688,13 @@ async function loadAdminProfile() {
     } catch { }
 }
 
-// Expose remaining helpers
 Object.assign(window, {
     viewReport, viewResident, flyToReport, flyToResident,
     openLightbox, closeLightbox, setDateFilter, setStatusFilter,
     applyFilters, toggleSat, switchTab, fitAllPins, resolveReport
 });
 
-// Boot
+
 initReportMap();
 loadAdminProfile();
 loadReports();

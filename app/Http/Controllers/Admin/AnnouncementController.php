@@ -38,7 +38,7 @@ class AnnouncementController extends Controller
             'title'       => 'required|string|max:255',
             'message'     => 'required|string',
             'pickup_date' => 'nullable|date',
-            'image_url'   => 'nullable|string', // can be base64 or already uploaded path
+            'image_url'   => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -47,12 +47,11 @@ class AnnouncementController extends Controller
 
         $imagePath = null;
 
-        // Handle base64 image (same as your Node version)
         if ($request->filled('image_url') && str_starts_with($request->image_url, 'data:image')) {
             try {
                 $imagePath = $this->saveBase64Image($request->image_url);
             } catch (\Exception $e) {
-                // Continue without image if saving fails
+
                 $imagePath = null;
             }
         } elseif ($request->filled('image_url')) {
@@ -67,9 +66,6 @@ class AnnouncementController extends Controller
             'created_by'  => $request->user()->id,
         ]);
 
-        // Live-pushes to every connected driver/resident dashboard
-        // (driver-dashboard.js's socket.on('new-announcement') /
-        // echo-bridge.js), same as the old socket.io broadcast.
         broadcast(new RealtimeEvent('reports', 'new-announcement', [
             'id'         => $announcement->id,
             'title'      => $announcement->title,
@@ -93,7 +89,6 @@ class AnnouncementController extends Controller
             return response()->json(['error' => 'Announcement not found'], 404);
         }
 
-        // Optional: delete the image file if it exists
         if ($announcement->image_url && !str_starts_with($announcement->image_url, 'http')) {
             $path = str_replace('/storage/', '', $announcement->image_url);
             Storage::disk('public')->delete($path);
@@ -104,9 +99,6 @@ class AnnouncementController extends Controller
         return response()->json(['message' => 'Announcement deleted successfully']);
     }
 
-    /**
-     * Save base64 image and return public URL
-     */
     private function saveBase64Image(string $base64): string
     {
         preg_match('/^data:image\/(\w+);base64,/', $base64, $matches);
@@ -119,6 +111,6 @@ class AnnouncementController extends Controller
 
         Storage::disk('public')->put($filename, $imageData);
 
-        return Storage::url($filename); // returns /storage/announcements/...
+        return Storage::url($filename);
     }
 }

@@ -13,9 +13,6 @@ async function apiFetch(url, options = {}) {
     return res.json();
 }
 
-/* ══════════════ Small inline SVG icons (used for dynamically built strings) ══════════════
-   Icons below are real inline SVG (not emoji) so markers/popups match the rest of
-   the app and render consistently across devices/themes. */
 const ICON_PIN = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>';
 const ICON_RECYCLE = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
 const ICON_ZONE = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>';
@@ -83,7 +80,6 @@ function switchTermsTab(tab, btn) {
     document.getElementById(tab === 'tos' ? 'tabTos' : 'tabPrivacy').classList.add('active');
 }
 
-/* ══════════════ Sidebar (mobile) ══════════════ */
 const hamburger = document.getElementById('hamburger');
 const sidebar = document.getElementById('sidebar');
 const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -190,11 +186,9 @@ let pinStops = [];
 let mrfStops = [];
 const DEFAULT_CENTER = { lat: 8.2317, lng: 123.4018 };
 
-// Free CARTO basemap key — get your own at https://carto.com/basemaps/apikey
-// (free, no card, ~1 min via email — 5M tile requests/month). Paste it below.
+
 const CARTO_API_KEY = "cb1_29ri_1_ec22111e95ba27720f0b3c7b";
 
-// CARTO Dark Matter — detailed roads/streets, retina-sharp, zoom 20
 tileStreet = L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=' + CARTO_API_KEY,
     {
@@ -204,12 +198,12 @@ tileStreet = L.tileLayer(
         detectRetina: true
     }
 );
-// Satellite (Esri — still free, no key required)
+
 tileSat = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     { attribution: '&copy; Esri', maxZoom: 19 }
 );
-// Street/road labels overlay for satellite view — free, no API key, sharper than old Esri Reference layer
+
 tileRoadOverlay = L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png?key=' + CARTO_API_KEY,
     {
@@ -222,8 +216,7 @@ tileRoadOverlay = L.tileLayer(
     }
 );
 
-// v2 = proximity-based MRF/stop checks. Old unversioned saves marked every
-// MRF from path index alone and must be discarded.
+
 const PROGRESS_STATE_VERSION = 2;
 
 function saveProgressState() {
@@ -253,7 +246,7 @@ function loadProgressState() {
         if (!raw) return null;
         const state = JSON.parse(raw);
 
-        // Discard pre-v2 state (path-index auto-checked all MRFs).
+
         if (state.v !== PROGRESS_STATE_VERSION) {
             localStorage.removeItem(`resident_progress_${currentAssignmentId}`);
             return null;
@@ -301,8 +294,6 @@ function restoreProgressState() {
         });
     }
 
-    // Restore truck marker only — do not re-run updateRouteProgress (avoids
-    // re-evaluating proximity against a restored trail index).
     if (state.truckLat && state.truckLng && truckMarker) {
         truckMarker.setLatLng([state.truckLat, state.truckLng]);
         truckLat = state.truckLat;
@@ -333,7 +324,7 @@ async function loadFallbackMRF() {
     try {
         const mrf = await apiFetch('/api/resident/mrf-location');
         if (!mrf || !mrf.latitude || !mrf.longitude) return;
-        // MRF (recycling facility) marker — distinct violet color from the truck/user markers
+
         const icon = L.divIcon({
             className: "",
             html: `<div class="mrf-wrap"><div class="mrf-pulse-ring"></div><div class="mrf-pin"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="1"/><rect x="6" y="4" width="3" height="6"/><rect x="13" y="6" width="3" height="4"/><rect x="10" y="15" width="4" height="6"/></svg></span></div></div>`,
@@ -360,7 +351,7 @@ function setTile(mode) {
     } else {
         if (map.hasLayer(tileSat)) map.removeLayer(tileSat);
         tileStreet.addTo(map);
-        tileRoadOverlay.addTo(map);   // keep labels on dark base
+        tileRoadOverlay.addTo(map);
         document.getElementById('btnSat')?.classList.remove('active');
         document.getElementById('btnStreet')?.classList.add('active');
     }
@@ -459,7 +450,7 @@ function showRouteWithTrail(routeData) {
     }));
 
     mrfStops.forEach((m, i) => {
-        // MRF (recycling facility) marker — distinct violet color from the truck/user markers
+
         const icon = L.divIcon({
             className: "",
             html: `<div class="mrf-wrap" id="mrfWrap${i}"><div class="mrf-pulse-ring"></div><div class="mrf-pin" id="mrfPin${i}"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="1"/><rect x="6" y="4" width="3" height="6"/><rect x="13" y="6" width="3" height="4"/><rect x="10" y="15" width="4" height="6"/></svg></span></div></div>`,
@@ -492,16 +483,14 @@ function showRouteWithTrail(routeData) {
     }
 }
 
-// Proximity thresholds (meters). MRFs require a tighter check so the
-// truck must physically visit them — path progress alone is not enough.
+
 const STOP_REACH_RADIUS_M = 80;
 const MRF_REACH_RADIUS_M = 45;
-// How close the truck must be to the road path before we advance the trail.
+
 const PATH_SNAP_MAX_M = 120;
 
 function markMRFPassed(pt) {
-    // MRFs are ONLY marked when the truck is physically near the facility.
-    // Road-path progress alone must never auto-complete an MRF.
+
     if (!pt) return;
 
     mrfStops.forEach((m, i) => {
@@ -523,9 +512,7 @@ function markMRFPassed(pt) {
 function updateRouteProgress(lat, lng) {
     if (!drawnCoords.length || !progressPolyline || !trailPolyline) return;
     const current = L.latLng(lat, lng);
-    // Follow the path from the start outward. Only look a short window
-    // ahead of progressIndex so a truck GPS fix near the end cannot jump
-    // the entire trail (and previously all MRFs).
+
     let nearest = progressIndex;
     let minDist = Infinity;
     const start = Math.max(0, progressIndex - 3);
@@ -613,8 +600,7 @@ function placeTruckMarker(lat, lng, animate = true) {
             updateRouteProgress(lat, lng);
         }
     } else {
-        // Collection truck marker — sized up with a pulsing ring so it reads
-        // as the primary "live" thing to watch on the map.
+
         const icon = L.divIcon({
             className: "",
             html: `<div class="truck-marker-wrap"><div class="truck-pulse-ring"></div><div class="truck-marker"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></div></div>`,
@@ -646,7 +632,7 @@ async function loadResidentLocations() {
         });
         list.forEach(r => {
             const fresh = (Date.now() - new Date(r.location_updated_at || 0).getTime()) < 5 * 60 * 1000;
-            // Resident (other people sharing location) marker
+
             const icon = L.divIcon({
                 className: "",
                 html: `<div class="resident-pin ${fresh ? 'fresh' : 'stale'}"><span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span></div>`,
@@ -675,7 +661,7 @@ function haversineKm(lat1, lng1, lat2, lng2) {
 function updateDistanceHUD() {
     if (userLat === null || truckLat === null) return;
     const km = haversineKm(userLat, userLng, truckLat, truckLng);
-    // Distance-to-truck text with truck icon
+
     const distanceText = km < 1 ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg> Truck is ~${Math.round(km * 1000)} m away` : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg> Truck is ~${km.toFixed(2)} km away`;
     const distanceEl = document.getElementById('distanceText');
     if (distanceEl) distanceEl.textContent = distanceText;
@@ -1078,7 +1064,7 @@ function connectResidentSocket() {
         return;
     }
 
-    // Socket.IO is optional — app works with REST polling if the server is down.
+
     let socketErrorLogged = false;
     residentSocket = window.io(window.location.origin, {
         transports: ['websocket', 'polling'],
