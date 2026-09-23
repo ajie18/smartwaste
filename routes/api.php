@@ -31,6 +31,9 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
 
+    Route::get('/resident-locations', [ResidentController::class, 'getResidentLocations'])
+        ->middleware('role:resident|driver|admin');
+
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/change-password', [AuthController::class, 'changePassword']);
@@ -95,7 +98,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/mrf-locations', [MRFController::class, 'store']);
         Route::put('/mrf-locations/{id}', [MRFController::class, 'update']);
         Route::delete('/mrf-locations/{id}', [MRFController::class, 'destroy']);
-        Route::get('/resident-locations', [ResidentController::class, 'getResidentLocations']);
     });
 
 
@@ -123,7 +125,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/performance-stats', [DriverController::class, 'getPerformanceStats']);
         Route::get('/connected-drivers', [DriverController::class, 'getConnectedDrivers']);
 
-        Route::get('/resident-locations', [ResidentController::class, 'getResidentLocations']);
 
         Route::get('/notifications', [DriverController::class, 'getNotifications']);
         Route::put('/notifications/{id}/read', [DriverController::class, 'markNotificationRead']);
@@ -153,7 +154,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/location', [ResidentController::class, 'shareMyLocation']);
         Route::post('/share-location', [ResidentController::class, 'shareMyLocation']);
-        Route::get('/resident-locations', [ResidentController::class, 'getResidentLocations']);
         Route::get('/mrf-location', [ResidentController::class, 'getMRFLocation']);
 
         Route::get('/profile', [ResidentController::class, 'getProfile']);

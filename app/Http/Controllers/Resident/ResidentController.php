@@ -186,7 +186,7 @@ class ResidentController extends Controller
             ->where('assigned_date', $today)
             ->first();
 
-        if (!$assignment || $assignment->status !== 'in_progress') {
+        if (!$assignment || !in_array($assignment->status, ['in_progress', 'completed'], true)) {
             return response()->json([]);
         }
 
@@ -197,8 +197,12 @@ class ResidentController extends Controller
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->orderByDesc('logged_at')
-            ->limit(50)
+            ->limit(500)
             ->get(['latitude', 'longitude', 'logged_at as recorded_at']);
+
+        if ($assignment->status === 'completed') {
+            return response()->json($logs->sortBy('recorded_at')->values());
+        }
 
         $fresh = $logs->filter(function ($log) {
             return now()->diffInSeconds(Carbon::parse($log->recorded_at)) < self::LIVE_LOCATION_FRESHNESS_SECONDS;

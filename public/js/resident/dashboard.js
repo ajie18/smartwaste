@@ -650,7 +650,7 @@ function placeTruckMarker(lat, lng, animate = true) {
 async function loadResidentLocations() {
     if (!map) return;
     try {
-        const list = await apiFetch('/api/resident/resident-locations');
+        const list = await apiFetch('/api/resident-locations');
         const freshIds = new Set(list.map(r => r.id));
         Object.keys(residentMarkers).forEach(id => {
             if (!freshIds.has(parseInt(id))) {
@@ -1068,9 +1068,9 @@ async function loadTodayTruck(assignmentId = null) {
 
         startUserTracking();
 
-        if (routeStarted && routeStatus === 'in_progress') {
+        if (routeStatus === 'in_progress' || routeStatus === 'completed') {
             pollTruckLocation();
-            setInterval(pollTruckLocation, 10000);
+            if (routeStatus === 'in_progress') setInterval(pollTruckLocation, 10000);
         }
     } catch (err) {
         console.error('loadTodayTruck failed:', err);
@@ -1081,13 +1081,20 @@ async function loadTodayTruck(assignmentId = null) {
 }
 
 async function pollTruckLocation() {
-    if (!currentTruckId || routeStatus !== 'in_progress') return;
+    if (!currentTruckId || !['in_progress', 'completed'].includes(routeStatus)) return;
     try {
         console.log(`Polling truck ${currentTruckId} location...`);
         const logs = await apiFetch(`/api/resident/truck/${currentTruckId}/location`);
-        if (logs && logs.length > 0 && logs[0].latitude && logs[0].longitude) {
-            hasLiveTruckLocation = true;
-            placeTruckMarker(logs[0].latitude, logs[0].longitude, true);
+        if (logs && logs.length > 0) {
+            const validLogs = logs.filter(log => log.latitude && log.longitude);
+            if (!validLogs.length) return;
+            validLogs.forEach((log, index) => {
+                updateRouteProgress(Number(log.latitude), Number(log.longitude));
+                if (index === validLogs.length - 1) {
+                    hasLiveTruckLocation = true;
+                    placeTruckMarker(log.latitude, log.longitude, routeStatus === 'in_progress');
+                }
+            });
             const statusEl = document.getElementById('todayTruck');
             if (statusEl && statusEl.innerHTML.includes('Waiting for GPS')) {
                 loadTodayTruck();
