@@ -242,7 +242,7 @@ async function assignRoute() {
         return;
     }
     try {
-        const res = await API.post("/admin/assign-route", body);
+        const res = await API.post("/admin/pickups", body);
         if (!res.ok) {
             const err = await res.text();
             console.error('Assign error:', err);
