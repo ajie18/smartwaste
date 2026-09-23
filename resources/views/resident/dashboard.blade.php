@@ -598,11 +598,13 @@
         </svg>
     </button>
 
+    <script src="{{ asset('js/request-guard.js') }}"></script>
     <script src="{{ asset('js/resident/dashboard.js') }}"></script>
     <script src="https://unpkg.com/pusher-js@8.4/dist/web/pusher.min.js"></script>
     <script src="https://unpkg.com/laravel-echo@1.16/dist/echo.iife.js"></script>
     <script>
         window.__reverbConfig = {
+            enabled: {{ filter_var(env('REVERB_ENABLED', false), FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false' }},
             key: "{{ config('broadcasting.connections.reverb.key') }}",
             host: "{{ env('REVERB_HOST', request()->getHost()) }}",
             port: {{ env('REVERB_PORT', 8080) }},

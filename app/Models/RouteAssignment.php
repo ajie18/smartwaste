@@ -20,6 +20,7 @@ class RouteAssignment extends Model
 
     protected $casts = [
         'assigned_date' => 'date',
+        'progress_log' => 'array',
     ];
 
     public function driver()

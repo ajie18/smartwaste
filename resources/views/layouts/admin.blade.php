@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ asset('js/style.js') }}"></script>
+    <script src="{{ asset('js/request-guard.js') }}"></script>
     <link rel="stylesheet" href="{{ asset('css/admin/' . ($cssFile ?? 'dashboard') . '.css') }}">
     @stack('head')
 </head>

@@ -54,6 +54,7 @@ class DriverController extends Controller
                 'route_assignments.assigned_date',
                 'route_assignments.status',
                 'route_assignments.pickup_type',
+                'route_assignments.progress_log',
                 'routes.id as route_id',
                 'routes.zone_name',
                 'routes.description as zone_description',
@@ -63,6 +64,14 @@ class DriverController extends Controller
                 'trucks.latitude',
                 'trucks.longitude',
             ]);
+
+        $assignments->transform(function ($assignment) {
+            if (is_string($assignment->progress_log)) {
+                $assignment->progress_log = json_decode($assignment->progress_log, true);
+            }
+
+            return $assignment;
+        });
 
         return response()->json($assignments);
     }
@@ -80,7 +89,12 @@ class DriverController extends Controller
             return response()->json(['error' => 'Not authorised'], 403);
         }
 
-        $assignment->update(['status' => $status]);
+        $progressLog = $request->input('progress_log');
+        $updates = ['status' => $status];
+        if (is_array($progressLog)) {
+            $updates['progress_log'] = $progressLog + ['completed_at' => now()->toIso8601String()];
+        }
+        $assignment->update($updates);
 
         if ($status === 'completed') {
             TripLog::create([

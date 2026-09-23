@@ -537,6 +537,7 @@
     </div>
 
     <div id="toast"></div>
+    <script src="{{ asset('js/request-guard.js') }}"></script>
     <script src="{{ asset('js/driver/dashboard.js') }}"></script>
 
     <!-- Real-time (Laravel Reverb via Laravel Echo). Loaded after

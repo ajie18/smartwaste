@@ -144,7 +144,7 @@ function saveProgressState() {
     const assignmentId = currentAssignmentId || document.querySelector('.today-card')?.dataset?.assignmentId;
     if (!assignmentId) return;
 
-    if (routeStatus === 'completed' || routeStatus === 'cancelled') {
+    if (routeStatus === 'cancelled') {
         localStorage.removeItem(`driver_progress_${assignmentId}`);
         return;
     }
@@ -167,7 +167,7 @@ function saveProgressState() {
 function loadProgressState(assignmentId) {
     if (!assignmentId) return null;
 
-    if (routeStatus === 'completed' || routeStatus === 'cancelled') {
+    if (routeStatus === 'cancelled') {
         localStorage.removeItem(`driver_progress_${assignmentId}`);
         return null;
     }
@@ -455,11 +455,13 @@ function emitLocation(lat, lng, accuracy) {
     }
 }
 
-function emitStatusUpdate(assignmentId, status) {
+function emitStatusUpdate(assignmentId, status, progressLog = null) {
+    const payload = { status };
+    if (progressLog) payload.progress_log = progressLog;
     if (socket && socketConnected) {
-        socket.emit('update-status', { assignmentId, status });
+        socket.emit('update-status', { assignmentId, ...payload });
     } else {
-        api('PATCH', `/assignment/${assignmentId}/status`, { status })
+        api('PATCH', `/assignment/${assignmentId}/status`, payload)
             .then(() => { toast(`Route ${status}`, 'success'); loadToday(); loadStats(); })
             .catch(err => toast(err.message, 'error'));
     }
@@ -1293,6 +1295,7 @@ function stopGPS() {
 
 let todaysAssignments = [];
 let activeAssignmentIdx = 0;
+let activeProgressLog = null;
 
 async function loadToday() {
     try {
@@ -1348,6 +1351,10 @@ function selectAssignment(idx) {
     const data = todaysAssignments[idx];
     currentAssignmentId = data.id;
     routeStatus = data.status;
+    activeProgressLog = data.progress_log || null;
+    if (routeStatus === 'in_progress' && !gpsActive) {
+        startGPS();
+    }
     renderAssignment(data);
     renderRouteTabs();
     if (data.route_id) {
@@ -1362,6 +1369,10 @@ async function loadRouteWaypoints(routeId) {
     if (routeId !== lastLoadedRouteId) {
         reachedStopKeys.clear();
         reachedMrfKeys.clear();
+        if (activeProgressLog) {
+            (activeProgressLog.stops_completed || []).forEach(key => reachedStopKeys.add(key));
+            (activeProgressLog.mrf_passed || []).forEach(key => reachedMrfKeys.add(key));
+        }
         lastLoadedRouteId = routeId;
     }
     try {
@@ -1453,7 +1464,11 @@ async function updateStatus(id, status) {
     if (status === 'in_progress' && !gpsActive) {
         startGPS();
     }
-    emitStatusUpdate(id, status);
+    const progressLog = status === 'completed' ? {
+        mrf_passed: Array.from(reachedMrfKeys),
+        stops_completed: Array.from(reachedStopKeys),
+    } : null;
+    emitStatusUpdate(id, status, progressLog);
 }
 
 async function loadStats() {

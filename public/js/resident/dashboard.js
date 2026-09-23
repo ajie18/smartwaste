@@ -1,16 +1,28 @@
 const token = localStorage.getItem('token');
 if (!token) window.location.href = '/login.html';
 
+const pendingRequests = new Map();
+
 async function apiFetch(url, options = {}) {
+    const requestKey = `${options.method || 'GET'}:${url}:${options.body || ''}`;
+    if (pendingRequests.has(requestKey)) return pendingRequests.get(requestKey);
     const opts = { ...options, headers: { Authorization: `Bearer ${token}`, ...(options.headers || {}) } };
-    const res = await fetch(url, opts);
-    if (!res.ok) {
-        let bodyText = '';
-        try { bodyText = await res.text(); } catch (_) { }
-        console.error(`[API ${res.status}] ${url}`, bodyText);
-        throw new Error(`${res.status} ${res.statusText} on ${url}${bodyText ? ' — ' + bodyText : ''}`);
+    const request = (async () => {
+        const res = await fetch(url, opts);
+        if (!res.ok) {
+            let bodyText = '';
+            try { bodyText = await res.text(); } catch (_) { }
+            console.error(`[API ${res.status}] ${url}`, bodyText);
+            throw new Error(`${res.status} ${res.statusText} on ${url}${bodyText ? ' — ' + bodyText : ''}`);
+        }
+        return res.json();
+    })();
+    pendingRequests.set(requestKey, request);
+    try {
+        return await request;
+    } finally {
+        pendingRequests.delete(requestKey);
     }
-    return res.json();
 }
 
 const ICON_PIN = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><path d="M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>';
@@ -445,6 +457,7 @@ function showRouteWithTrail(routeData) {
 
     mrfStops = mrfs.map(m => ({
         ...m,
+        _key: `mrf_${mrfs.indexOf(m)}_${m.name || 'MRF'}`,
         _routeIdx: drawnCoords.length ? nearestRoadIndex(m.lat, m.lng) : null,
         _passed: false
     }));
@@ -478,6 +491,21 @@ function showRouteWithTrail(routeData) {
         restoreProgressState();
     }
 
+
+function restoreSavedMrfProgress(progressLog) {
+    const passed = new Set(progressLog?.mrf_passed || []);
+    mrfStops.forEach((m, i) => {
+        if (!passed.has(m._key)) return;
+        m._passed = true;
+        const wrap = document.getElementById(`mrfWrap${i}`);
+        const pin = document.getElementById(`mrfPin${i}`);
+        if (wrap) wrap.classList.add('passed');
+        if (pin) {
+            pin.classList.add('passed');
+            pin.innerHTML = '<span style="font-size:14px">✓</span>';
+        }
+    });
+}
     if (truckLat !== null && truckLng !== null) {
         updateRouteProgress(truckLat, truckLng);
     }
@@ -957,11 +985,14 @@ function applyStatusToUI(status) {
     }
 }
 
-async function loadTodayTruck() {
+async function loadTodayTruck(assignmentId = null) {
     const statusEl = document.getElementById('todayTruck');
     resetCollectionBanner();
     try {
-        const data = await apiFetch('/api/resident/today-truck');
+        const endpoint = assignmentId
+            ? `/api/resident/today-truck?assignment_id=${encodeURIComponent(assignmentId)}`
+            : '/api/resident/today-truck';
+        const data = await apiFetch(endpoint);
         if (!data) {
             statusEl.textContent = 'No truck assigned today.';
             currentAssignmentId = null;
@@ -975,6 +1006,21 @@ async function loadTodayTruck() {
         routeStarted = !!data.route_started;
         hasLiveTruckLocation = !!data.has_live_location;
         routeStatus = data.status || (routeStarted ? 'in_progress' : 'pending');
+
+        const assignments = data.available_assignments || [];
+        let switcher = document.getElementById('residentAssignmentSwitcher');
+        if (assignments.length > 1) {
+            if (!switcher) {
+                switcher = document.createElement('select');
+                switcher.id = 'residentAssignmentSwitcher';
+                switcher.style.cssText = 'width:100%;margin:0 0 10px;padding:8px;border:1px solid var(--border,#dfe9e3);border-radius:8px;background:var(--card,#fff);color:inherit;';
+                statusEl.parentNode.insertBefore(switcher, statusEl);
+            }
+            switcher.innerHTML = assignments.map(item => `<option value="${item.id}" ${String(item.id) === String(data.id) ? 'selected' : ''}>${item.zone_name || 'Route'} · ${item.driver_name || 'Driver'} · ${(item.status || 'pending').replace('_', ' ')}</option>`).join('');
+            switcher.onchange = () => loadTodayTruck(switcher.value);
+        } else if (switcher) {
+            switcher.remove();
+        }
 
         const truckObj = data.truck || data.assignment || {};
         const plate = data.plate_number || data.plate || data.truck_plate
@@ -1004,6 +1050,7 @@ async function loadTodayTruck() {
                 if (parsed.road.length || parsed.pins.length || parsed.mrfs.length) {
                     initMap(parsed.road[0]?.lat || DEFAULT_CENTER.lat, parsed.road[0]?.lng || DEFAULT_CENTER.lng);
                     showRouteWithTrail(parsed);
+                    restoreSavedMrfProgress(data.progress_log);
                 } else {
                     initMap();
                 }
@@ -1054,6 +1101,10 @@ async function pollTruckLocation() {
 let residentSocket = null;
 
 function connectResidentSocket() {
+    // Socket.IO is not deployed with the Laravel application; use REST polling.
+    residentSocket = null;
+    return;
+
     if (!window.io) {
         console.warn('Socket.IO not loaded, using polling fallback');
         return;

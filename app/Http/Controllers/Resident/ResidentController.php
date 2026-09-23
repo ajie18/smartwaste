@@ -38,13 +38,14 @@ class ResidentController extends Controller
     {
         $today = $this->manilaToday();
 
-        $assignment = RouteAssignment::query()
+        $assignments = RouteAssignment::query()
             ->join('trucks', 'route_assignments.truck_id', '=', 'trucks.id')
             ->join('routes', 'route_assignments.route_id', '=', 'routes.id')
+            ->join('users as drivers', 'route_assignments.driver_id', '=', 'drivers.id')
             ->where('route_assignments.assigned_date', $today)
-            ->orderByRaw("FIELD(route_assignments.status, 'in_progress', 'pending', 'completed', 'cancelled')")
             ->select(
                 'route_assignments.*',
+                'drivers.name as driver_name',
                 'trucks.plate_number',
                 'trucks.model',
                 'trucks.latitude as truck_lat',
@@ -54,17 +55,56 @@ class ResidentController extends Controller
                 'routes.zone_name',
                 'routes.waypoints_json'
             )
-            ->first();
+            ->get();
 
-        if (!$assignment) {
+        if ($assignments->isEmpty()) {
             return response()->json(null);
         }
 
+        $resident = $request->user();
+        $residentLat = $resident->latitude;
+        $residentLng = $resident->longitude;
+        $statusPriority = ['in_progress' => 0, 'pending' => 1, 'completed' => 2, 'cancelled' => 3];
+
+        $assignment = $request->integer('assignment_id')
+            ? $assignments->firstWhere('id', $request->integer('assignment_id'))
+            : null;
+
+        if (!$assignment) {
+            $assignment = $assignments->sortBy(function ($candidate) use ($residentLat, $residentLng, $statusPriority) {
+            $distance = PHP_INT_MAX;
+            if ($residentLat !== null && $residentLng !== null) {
+                $waypoints = $this->parseWaypoints($candidate->waypoints_json);
+                $points = array_merge($waypoints['road'] ?? [], $waypoints['pins'] ?? [], $waypoints['mrfs'] ?? []);
+                foreach ($points as $point) {
+                    if (!isset($point['lat'], $point['lng'])) continue;
+                    $distance = min($distance, $this->distanceKm($residentLat, $residentLng, $point['lat'], $point['lng']));
+                }
+            }
+
+            return [
+                $statusPriority[$candidate->status] ?? 9,
+                $distance,
+                $candidate->id,
+            ];
+            })->first();
+        }
+
         $route = collect($assignment)->toArray();
+        if (is_string($route['progress_log'] ?? null)) {
+            $route['progress_log'] = json_decode($route['progress_log'], true);
+        }
         $route['parsed_waypoints'] = $this->parseWaypoints($assignment->waypoints_json);
         $route['route_started'] = $assignment->status === 'in_progress';
         $route['route_completed'] = $assignment->status === 'completed';
         $route['route_cancelled'] = $assignment->status === 'cancelled';
+        $route['available_assignments'] = $assignments->map(fn ($item) => [
+            'id' => $item->id,
+            'driver_id' => $item->driver_id,
+            'driver_name' => $item->driver_name,
+            'zone_name' => $item->zone_name,
+            'status' => $item->status,
+        ])->values();
         $route['has_live_location'] = false;
         $route['latitude'] = null;
         $route['longitude'] = null;
@@ -81,6 +121,16 @@ class ResidentController extends Controller
         unset($route['truck_lat'], $route['truck_lng'], $route['truck_loc_updated_at']);
 
         return response()->json($route);
+    }
+
+    private function distanceKm(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $latDelta = deg2rad($lat2 - $lat1);
+        $lngDelta = deg2rad($lng2 - $lng1);
+        $a = sin($latDelta / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($lngDelta / 2) ** 2;
+
+        return 6371 * 2 * asin(min(1, sqrt($a)));
     }
 
     public function getRouteWaypoints(Request $request)

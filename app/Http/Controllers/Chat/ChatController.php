@@ -156,7 +156,10 @@ class ChatController extends Controller
             ->first();
 
         if (!$assignment) {
-            return response()->json(['error' => 'No driver assigned for today yet'], 404);
+            return response()->json([
+                'conversation_id' => null,
+                'message' => 'No driver assigned for today yet',
+            ]);
         }
 
         $driver = User::find($assignment->driver_id);

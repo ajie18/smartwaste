@@ -1,5 +1,5 @@
 (function () {
-    if (typeof Echo === 'undefined' || typeof window.__reverbConfig === 'undefined') {
+    if (typeof Echo === 'undefined' || typeof window.__reverbConfig === 'undefined' || !window.__reverbConfig.enabled) {
         console.warn('Echo bridge: laravel-echo or reverb config missing — resident dashboard stays on REST polling only.');
         return;
     }
