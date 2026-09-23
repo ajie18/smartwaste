@@ -33,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/resident-locations', [ResidentController::class, 'getResidentLocations'])
         ->middleware('role:resident|driver|admin');
+    Route::get('/mrf-location', [ResidentController::class, 'getMRFLocation'])
+        ->middleware('role:resident|driver|admin');
 
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -154,7 +156,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/location', [ResidentController::class, 'shareMyLocation']);
         Route::post('/share-location', [ResidentController::class, 'shareMyLocation']);
-        Route::get('/mrf-location', [ResidentController::class, 'getMRFLocation']);
 
         Route::get('/profile', [ResidentController::class, 'getProfile']);
         Route::put('/profile', [ResidentController::class, 'updateProfile']);

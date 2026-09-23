@@ -1033,7 +1033,7 @@ function updateRouteProgress(lat, lng) {
 async function loadResidents() {
     if (!dMap) return;
     try {
-        const residents = await apiRaw("/api/driver/resident-locations");
+        const residents = await apiRaw("/api/resident-locations");
         const seen = new Set();
         residents.forEach(r => {
             if (!r.latitude || !r.longitude) return;

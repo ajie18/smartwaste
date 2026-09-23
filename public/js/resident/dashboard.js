@@ -334,7 +334,7 @@ function initMap(lat = DEFAULT_CENTER.lat, lng = DEFAULT_CENTER.lng) {
 
 async function loadFallbackMRF() {
     try {
-        const mrf = await apiFetch('/api/resident/mrf-location');
+        const mrf = await apiFetch('/api/mrf-location');
         if (!mrf || !mrf.latitude || !mrf.longitude) return;
 
         const icon = L.divIcon({
