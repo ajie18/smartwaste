@@ -295,7 +295,7 @@
     }
 
     function subscribeToConversation(conversationId) {
-        if (typeof window.Echo === 'undefined') return;
+        if (typeof window.Echo?.private !== 'function') return;
         if (state.subscribedConversation === conversationId) return;
         state.subscribedConversation = conversationId;
         window.Echo.private(`conversation.${conversationId}`).listen('.chat-message', (data) => {
@@ -307,7 +307,7 @@
         stopPolling();
         // Only needed as a fallback when Echo isn't connected — real-time
         // delivery happens instantly via subscribeToConversation above.
-        if (typeof window.Echo !== 'undefined') return;
+        if (typeof window.Echo?.private === 'function') return;
         state.pollTimer = setInterval(() => {
             if (state.open && state.activeConversationId === conversationId) {
                 loadMessages(conversationId);
@@ -323,7 +323,7 @@
     }
 
     function listenForPings() {
-        if (typeof window.Echo === 'undefined') return;
+        if (typeof window.Echo?.private !== 'function') return;
         const channel = cfg.role === 'driver' ? `driver.${cfg.currentUserId}` : `resident.${cfg.currentUserId}`;
         window.Echo.private(channel).listen('.chat-message', async (data) => {
             if (data.conversation_id === state.activeConversationId) return; // already handled above
