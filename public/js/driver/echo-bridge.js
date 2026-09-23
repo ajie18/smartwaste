@@ -1,6 +1,6 @@
 
 (function () {
-    if (typeof Echo === 'undefined' || typeof window.__reverbConfig === 'undefined') {
+    if (typeof Echo === 'undefined' || typeof window.__reverbConfig === 'undefined' || !window.__reverbConfig.enabled) {
         console.warn('Echo bridge: laravel-echo or reverb config missing — falling back to REST polling only.');
         return;
     }

@@ -269,6 +269,12 @@ let currentAssignmentId = null;
 let routeStatus = null;
 
 function connectWebSocket() {
+    // Socket.IO is not deployed with the Laravel application; use REST polling.
+    socket = null;
+    socketConnected = false;
+    updateConnectionStatus(false);
+    return;
+
     // No Socket.IO server behind the Laravel backend (see BASE comment
     // above) — stay in REST-fallback mode permanently. `socket` stays
     // null/`socketConnected` stays false, so every emit* helper below
@@ -1025,7 +1031,7 @@ function updateRouteProgress(lat, lng) {
 async function loadResidents() {
     if (!dMap) return;
     try {
-        const residents = await apiRaw("/api/resident/resident-locations");
+        const residents = await apiRaw("/api/driver/resident-locations");
         const seen = new Set();
         residents.forEach(r => {
             if (!r.latitude || !r.longitude) return;
@@ -1444,6 +1450,9 @@ function renderAssignment(data) {
 }
 
 async function updateStatus(id, status) {
+    if (status === 'in_progress' && !gpsActive) {
+        startGPS();
+    }
     emitStatusUpdate(id, status);
 }
 
