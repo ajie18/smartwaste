@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
+Route::get('/favicon.ico', fn() => response()->file(public_path('favicon.svg'), [
+    'Content-Type' => 'image/svg+xml',
+]));
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::view('/dashboard', 'admin.dashboard')->name('dashboard');

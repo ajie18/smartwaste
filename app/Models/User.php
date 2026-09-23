@@ -47,6 +47,11 @@ class User extends Authenticatable
         'password'            => 'hashed',
     ];
 
+    public function getDefaultGuardName(): string
+    {
+        return 'web';
+    }
+
     public function routeAssignmentsAsDriver()
     {
         return $this->hasMany(RouteAssignment::class, 'driver_id');
