@@ -39,14 +39,14 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 
-    Route::prefix('chat')->middleware('role:resident|driver,sanctum')->group(function () {
+    Route::prefix('chat')->middleware('role:resident|driver')->group(function () {
         Route::get('/conversations', [ChatController::class, 'index']);
         Route::get('/conversations/{id}/messages', [ChatController::class, 'messages']);
         Route::post('/conversations/{id}/messages', [ChatController::class, 'send']);
         Route::put('/conversations/{id}/read', [ChatController::class, 'markRead']);
     });
 
-    Route::prefix('admin')->middleware('role:admin,sanctum')->group(function () {
+    Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'stats']);
         Route::get('/analytics', [ReportController::class, 'analytics']);
         Route::get('/export-analytics', [AnalyticsController::class, 'export']);
@@ -99,7 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 
-    Route::prefix('driver')->middleware('role:driver,sanctum')->group(function () {
+    Route::prefix('driver')->middleware('role:driver')->group(function () {
 
         Route::get('/today-assignment', [DriverController::class, 'getTodayAssignment']);
         Route::get('/today-route-details', [DriverController::class, 'getTodayRouteDetails']);
@@ -137,7 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/assignment/{id}/status', [DriverController::class, 'updateAssignmentStatus']);
     });
 
-    Route::prefix('resident')->middleware('role:resident,sanctum')->group(function () {
+    Route::prefix('resident')->middleware('role:resident')->group(function () {
         Route::get('/today-truck', [ResidentController::class, 'getTodayTruck']);
         Route::get('/route-waypoints', [ResidentController::class, 'getRouteWaypoints']);
         Route::get('/pickup-schedule', [ResidentController::class, 'getPickupSchedule']);
