@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0d9668">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="{{ asset('manifest-driver.json') }}">
     <title>CleanCity · Driver Portal (Real-time)</title>
     <script>
         (function () {
@@ -557,6 +560,7 @@
 
     <!-- Resident <-> driver chat widget -->
     <script src="{{ asset('js/chat-widget.js') }}"></script>
+    <script src="{{ asset('js/pwa.js') }}"></script>
     <script>
         (function () {
             let user = {};

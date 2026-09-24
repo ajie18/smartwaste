@@ -4,6 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0d9668">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="{{ asset('manifest-resident.json') }}">
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <title>CleanCity · Waste Reporting and Collection System</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -613,6 +617,7 @@
     </script>
     <script src="{{ asset('js/resident/echo-bridge.js') }}"></script>
     <script src="{{ asset('js/chat-widget.js') }}"></script>
+    <script src="{{ asset('js/pwa.js') }}"></script>
     <script>
         (function() {
             let user = {};
