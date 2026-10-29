@@ -117,8 +117,9 @@ repository's SQLite file are not persistent database storage. Run
 `php artisan migrate --force` against the configured database from a trusted
 environment before using the deployment. The Vercel config uses cookie
 sessions, in-memory cache, and `/tmp` for compiled views and Laravel package
-manifests so requests do not depend on writable deployment files. For Aiven
-MySQL, include its CA certificate in the deployment and set
+manifests so requests do not depend on writable deployment files. It also
+trusts Vercel's forwarded proxy headers so Laravel generates HTTPS asset URLs.
+For Aiven MySQL, include its CA certificate in the deployment and set
 `MYSQL_ATTR_SSL_CA` to the certificate path if TLS verification requires it.
 Do not commit database credentials or the `.env` file.
 

@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ['middleware' => ['auth:sanctum']],
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES'));
+
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
