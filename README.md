@@ -84,6 +84,44 @@ wired up):
 php artisan reverb:start
 ```
 
+## Deploy on Vercel
+
+The application uses plain CSS and JavaScript files under `public/`; it does
+not use Vite or an npm build. The checked-in `vercel.json` selects the
+community `vercel-php` runtime and overrides any dashboard build command
+such as `vite build`. Its build script stages safe static files from
+`public/` into `dist/`, excluding PHP files and `.htaccess`, while Laravel
+requests are handled by `api/index.php`.
+
+Configure these Vercel Production environment variables:
+
+```text
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=<output of php artisan key:generate --show>
+APP_URL=https://<your-vercel-domain>
+DB_CONNECTION=mysql
+DB_HOST=<managed-database-host>
+DB_PORT=<managed-database-port>
+DB_DATABASE=<database-name>
+DB_USERNAME=<database-user>
+DB_PASSWORD=<database-password>
+SESSION_DRIVER=cookie
+CACHE_STORE=array
+QUEUE_CONNECTION=sync
+LOG_CHANNEL=stderr
+```
+
+Use a managed external database; Vercel's function filesystem and the
+repository's SQLite file are not persistent database storage. Run
+`php artisan migrate --force` against the configured database from a trusted
+environment before using the deployment. The Vercel config uses cookie
+sessions, in-memory cache, and `/tmp` for compiled views so requests do not
+depend on writable persistent storage. For Aiven MySQL, include its CA
+certificate in the deployment and set `MYSQL_ATTR_SSL_CA` to the certificate
+path if TLS verification requires it. Do not commit database credentials or
+the `.env` file.
+
 ## Deploy on Railway
 
 This repository includes a `Dockerfile` and `railway.json`. In Railway,

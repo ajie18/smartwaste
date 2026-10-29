@@ -1,0 +1,23 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/index.php": {
+      "runtime": "vercel-php@0.8.0"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.php"
+    }
+  ],
+  "buildCommand": "node scripts/prepare-vercel-output.mjs",
+  "outputDirectory": "dist",
+  "env": {
+    "CACHE_STORE": "array",
+    "LOG_CHANNEL": "stderr",
+    "QUEUE_CONNECTION": "sync",
+    "SESSION_DRIVER": "cookie",
+    "VIEW_COMPILED_PATH": "/tmp/laravel-views"
+  }
+}
