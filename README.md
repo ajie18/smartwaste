@@ -52,7 +52,6 @@ Import the repository into Vercel or deploy it with the Vercel CLI. Configure th
 - `APP_KEY` — generate a key with `php artisan key:generate --show` and save it as a Vercel secret. Keep this value stable across deployments.
 - `APP_URL` — the deployed Vercel URL or your custom domain
 - `DB_CONNECTION=mysql` or `pgsql`, plus `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` for a managed external database. If your provider gives you a connection URL instead, configure `DB_URL`. Do not use the bundled SQLite file for production: Vercel functions have ephemeral filesystems. When `DB_CONNECTION` is unset on Vercel, the app defaults to MySQL rather than a missing local SQLite file.
-- For Aiven MySQL, include the downloaded CA certificate as `ca.pem` in the project root and ensure it is deployed. The MySQL connection automatically uses this file on Vercel; optionally set `MYSQL_ATTR_SSL_CA` to another deployed certificate path.
 - `SESSION_DRIVER=database` and `CACHE_STORE=database` so sessions and cache persist across function instances. Run the migrations against the production database once before serving traffic.
 - `LOG_CHANNEL=stderr` (also configured in `vercel.json`)
 
