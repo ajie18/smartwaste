@@ -5,7 +5,7 @@ use App\Http\Controllers\Auth\AdminSessionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return view('welcome');
 });
 
 Route::get('/admin/login', [AdminSessionController::class, 'create'])->name('login');

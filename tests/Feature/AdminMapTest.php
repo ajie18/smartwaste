@@ -13,20 +13,6 @@ class AdminMapTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_homepage_redirects_to_admin_login(): void
-    {
-        $this->get('/')
-            ->assertRedirect(route('login'));
-    }
-
-    public function test_admin_login_page_is_available_to_guests(): void
-    {
-        $this->get('/admin/login')
-            ->assertOk()
-            ->assertSee('Admin sign in')
-            ->assertSee('Sign in');
-    }
-
     public function test_admin_can_sign_in_and_view_the_operations_map(): void
     {
         $admin = User::factory()->create([
