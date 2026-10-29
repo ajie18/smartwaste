@@ -43,7 +43,7 @@ Boost provides your agent 15+ tools and skills that help agents build Laravel ap
 
 ## Deploying on Vercel
 
-This app uses the community `vercel-php` runtime because Vercel's official Functions runtimes do not include PHP. The project requires PHP 8.4.1 or newer; `vercel-php@0.8.0` supplies PHP 8.4. The root `vercel.json` configures the PHP function, Laravel front controller, and Vite asset build. `npm run build:vercel` copies only public static assets into Vercel's configured `dist` output directory; it deliberately does not publish `public/index.php` as a static file.
+This app uses the community `vercel-php` runtime because Vercel's official Functions runtimes do not include PHP. The project requires PHP 8.4.1 or newer; `vercel-php@0.8.0` supplies PHP 8.4. The root `vercel.json` configures the PHP function, Laravel front controller, and Vite asset build.
 
 Import the repository into Vercel or deploy it with the Vercel CLI. Configure these project environment variables in Vercel for Production (and Preview if needed):
 
@@ -57,7 +57,7 @@ Import the repository into Vercel or deploy it with the Vercel CLI. Configure th
 
 Run `php artisan migrate --force` from a trusted environment that has the production database credentials before the first deployment, and again when deploying schema changes. Do not run migrations as part of the Vercel build because builds can run for previews and concurrently.
 
-Vercel builds the frontend and stages its static files with `npm run build:vercel`; `vercel-php` installs the Composer dependencies. The PHP function routes requests through `public/index.php`, while generated files under `public/build` are published from `dist/build`.
+Vercel builds the frontend with `npm run build`; `vercel-php` installs the Composer dependencies. The PHP function routes requests through `public/index.php`, while generated files under `public/build` are served as static assets.
 
 Vercel's function filesystem is temporary. Use a persistent object-storage disk (for example S3-compatible storage) for user uploads; do not rely on local `storage/app` for production data. Database-backed queues also need a separately running worker; use `QUEUE_CONNECTION=sync` if the app should process queued work inline.
 
