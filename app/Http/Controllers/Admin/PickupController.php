@@ -4,12 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\RouteAssignment;
-use App\Models\Route;
-use App\Models\Truck;
 use App\Models\User;
+use App\Services\IprogSmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
 
 class PickupController extends Controller
 {
@@ -20,16 +18,16 @@ class PickupController extends Controller
             ->get()
             ->map(function ($item) {
                 return [
-                    'id'            => $item->id,
-                    'driver_id'     => $item->driver_id,
-                    'truck_id'      => $item->truck_id,
-                    'route_id'      => $item->route_id,
+                    'id' => $item->id,
+                    'driver_id' => $item->driver_id,
+                    'truck_id' => $item->truck_id,
+                    'route_id' => $item->route_id,
                     'assigned_date' => $item->assigned_date,
-                    'status'        => $item->status,
-                    'pickup_type'   => $item->pickup_type,
-                    'driver_name'   => $item->driver->name ?? null,
-                    'truck_plate'   => $item->truck->plate_number ?? null,
-                    'zone_name'     => $item->route->zone_name ?? null,
+                    'status' => $item->status,
+                    'pickup_type' => $item->pickup_type,
+                    'driver_name' => $item->driver->name ?? null,
+                    'truck_plate' => $item->truck->plate_number ?? null,
+                    'zone_name' => $item->route->zone_name ?? null,
                 ];
             });
 
@@ -39,11 +37,11 @@ class PickupController extends Controller
     public function assign(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'driver_id'     => 'required|exists:users,id',
-            'truck_id'      => 'required|exists:trucks,id',
-            'route_id'      => 'required|exists:routes,id',
+            'driver_id' => 'required|exists:users,id',
+            'truck_id' => 'required|exists:trucks,id',
+            'route_id' => 'required|exists:routes,id',
             'assigned_date' => 'required|date',
-            'pickup_type'   => 'nullable|string|max:50',
+            'pickup_type' => 'nullable|string|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -52,24 +50,24 @@ class PickupController extends Controller
 
         // Optional: verify the user is actually a driver
         $driver = User::where('id', $request->driver_id)->where('role', 'driver')->first();
-        if (!$driver) {
+        if (! $driver) {
             return response()->json(['error' => 'Selected user is not a driver'], 400);
         }
 
         $assignment = RouteAssignment::create([
-            'driver_id'     => $request->driver_id,
-            'truck_id'      => $request->truck_id,
-            'route_id'      => $request->route_id,
+            'driver_id' => $request->driver_id,
+            'truck_id' => $request->truck_id,
+            'route_id' => $request->route_id,
             'assigned_date' => $request->assigned_date,
-            'pickup_type'   => $request->pickup_type ?? 'regular',
-            'status'        => 'pending',
+            'pickup_type' => $request->pickup_type ?? 'regular',
+            'status' => 'pending',
         ]);
 
         // TODO: Trigger SMS notification to residents (same as your Node version)
         // $this->notifyResidentsOfPickup(...);
 
         return response()->json([
-            'message'    => 'Route assigned successfully',
+            'message' => 'Route assigned successfully',
             'assignment' => $assignment,
         ], 201);
     }
@@ -78,7 +76,7 @@ class PickupController extends Controller
     {
         $assignment = RouteAssignment::find($id);
 
-        if (!$assignment) {
+        if (! $assignment) {
             return response()->json(['error' => 'Pickup schedule not found'], 404);
         }
 
@@ -88,11 +86,11 @@ class PickupController extends Controller
             'route_id',
             'assigned_date',
             'status',
-            'pickup_type'
+            'pickup_type',
         ]);
 
         // Remove null values so we only update what was sent
-        $data = array_filter($data, fn($value) => !is_null($value));
+        $data = array_filter($data, fn ($value) => ! is_null($value));
 
         if (empty($data)) {
             return response()->json(['error' => 'Nothing to update'], 400);
@@ -107,7 +105,7 @@ class PickupController extends Controller
     {
         $assignment = RouteAssignment::find($id);
 
-        if (!$assignment) {
+        if (! $assignment) {
             return response()->json(['error' => 'Pickup schedule not found'], 404);
         }
 
@@ -119,27 +117,42 @@ class PickupController extends Controller
     /**
      * Manually trigger SMS notification for today's pickups
      */
-    public function notifyPickupToday()
+    public function notifyPickupToday(IprogSmsService $smsService)
     {
         $today = now()->timezone('Asia/Manila')->toDateString();
 
-        $assignment = RouteAssignment::with(['route', 'truck'])
-            ->where('assigned_date', $today)
+        $assignment = RouteAssignment::with(['route', 'truck', 'driver'])
+            ->whereDate('assigned_date', $today)
             ->whereIn('status', ['pending', 'in_progress'])
             ->first();
 
-        if (!$assignment) {
+        if (! $assignment) {
             return response()->json([
                 'message' => 'No pickup scheduled for today',
-                'sent'    => 0,
+                'sent' => 0,
             ]);
         }
 
-        // TODO: Call your SMS service here
-        // notifyResidentsOfPickup(...)
+        if (! $assignment->driver || ! $assignment->driver->phone) {
+            return response()->json([
+                'error' => 'The assigned driver does not have a phone number on file',
+            ], 422);
+        }
+
+        $smsResult = $smsService->send(
+            $assignment->driver->phone,
+            sprintf(
+                'SmartWaste pickup reminder: %s is scheduled for %s. Truck: %s.',
+                $assignment->route->zone_name ?? 'your assigned route',
+                $today,
+                $assignment->truck->plate_number ?? 'not assigned'
+            )
+        );
 
         return response()->json([
-            'message' => 'Pickup SMS notifications queued for residents with phone numbers',
+            'message' => 'Pickup reminder sent to the assigned driver',
+            'message_id' => $smsResult['message_id'] ?? null,
+            'sent' => 1,
         ]);
     }
 }

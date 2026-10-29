@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'iprogsms' => [
+        'base_url' => env('IPROGSMS_BASE_URL', 'https://www.iprogsms.com/api/v1'),
+        'api_token' => env('IPROGSMS_API_TOKEN'),
+        'sender_name' => env('IPROGSMS_SENDER_NAME'),
+        'timeout' => (int) env('IPROGSMS_TIMEOUT', 10),
+    ],
+
+    'map' => [
+        'tile_url' => env('MAP_TILE_URL', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'),
+    ],
+
 ];

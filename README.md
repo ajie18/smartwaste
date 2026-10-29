@@ -56,6 +56,10 @@ Wasmer can provision a MySQL database and provide `DB_HOST`, `DB_PORT`, `DB_NAME
 
 The deployment must build the Vite assets with `npm ci && npm run build` so the generated `public/build` files are included in the release.
 
+The admin operations map is available at `/admin/map`; sign in at `/admin/login` with an existing user whose role is `admin`. It uses Leaflet with OpenStreetMap tiles and needs no map API key. Keep `MAP_TILE_URL` at its default unless you operate another tile provider.
+
+To enable password-reset and pickup-driver SMS, set `IPROGSMS_API_TOKEN` in the local `.env` and as a Wasmer secret. Optionally set `IPROGSMS_SENDER_NAME`; the API base URL and timeout have defaults in `.env.example`. The token is sent only by the server to iProgSMS. Pickup reminders go to the assigned driver's phone because this schema does not associate residents with route zones.
+
 ## CI/CD and Railway deployment
 
 GitHub Actions runs the PHPUnit suite and builds the Vite assets on pushes and pull requests. A successful push to `main` is then deployed to Railway.
