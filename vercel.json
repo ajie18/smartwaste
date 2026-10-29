@@ -18,6 +18,8 @@
     "LOG_CHANNEL": "stderr",
     "QUEUE_CONNECTION": "sync",
     "SESSION_DRIVER": "cookie",
-    "VIEW_COMPILED_PATH": "/tmp/laravel-views"
+    "VIEW_COMPILED_PATH": "/tmp/laravel-views",
+    "APP_PACKAGES_CACHE": "/tmp/laravel-packages.php",
+    "APP_SERVICES_CACHE": "/tmp/laravel-services.php"
   }
 }
