@@ -11,8 +11,18 @@
       "destination": "/api/index.php"
     }
   ],
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "dist",
   "env": {
-    "LOG_CHANNEL": "stderr"
+    "APP_CONFIG_CACHE": "/tmp/laravel-config.php",
+    "APP_EVENTS_CACHE": "/tmp/laravel-events.php",
+    "APP_PACKAGES_CACHE": "/tmp/laravel-packages.php",
+    "APP_ROUTES_CACHE": "/tmp/laravel-routes.php",
+    "APP_SERVICES_CACHE": "/tmp/laravel-services.php",
+    "CACHE_STORE": "database",
+    "LOG_CHANNEL": "stderr",
+    "QUEUE_CONNECTION": "sync",
+    "SESSION_DRIVER": "database",
+    "VIEW_COMPILED_PATH": "/tmp/laravel-views"
   }
 }
