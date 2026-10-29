@@ -52,14 +52,12 @@ Import the repository into Vercel or deploy it with the Vercel CLI. Configure th
 - `APP_KEY` — generate a key with `php artisan key:generate --show` and save it as a Vercel secret. Keep this value stable across deployments.
 - `APP_URL` — the deployed Vercel URL or your custom domain
 - `DB_CONNECTION=mysql` or `pgsql`, plus `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` for a managed external database. If your provider gives you a connection URL instead, configure `DB_URL`. Do not use the bundled SQLite file for production: Vercel functions have ephemeral filesystems. When `DB_CONNECTION` is unset on Vercel, the app defaults to MySQL rather than a missing local SQLite file.
-- For Aiven MySQL, include the downloaded CA certificate as `ca.pem` in the project root and ensure it is deployed. The MySQL connection automatically uses this file when `MYSQL_ATTR_SSL_CA` is unset or points to a missing file. Avoid setting a build/runtime-specific absolute path for this variable.
+- For Aiven MySQL, include the downloaded CA certificate as `ca.pem` in the project root and ensure it is deployed. The MySQL connection automatically uses this file on Vercel; optionally set `MYSQL_ATTR_SSL_CA` to another deployed certificate path.
 - `ADMIN_NAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` — credentials for the initial administrator. Set them as Vercel Production environment variables; use a unique password of at least 16 characters.
 - `SESSION_DRIVER=database` and `CACHE_STORE=database` so sessions and cache persist across function instances.
 - `LOG_CHANNEL=stderr` (also configured in `vercel.json`)
 
 The Vercel PHP runtime runs the Composer `vercel` hook during deployment. It applies migrations and ensures the configured admin account exists during Production builds only; Preview builds skip database changes. Production deployment fails if required database/admin settings are missing or a migration fails. On each Production deployment, the configured admin name and password are applied to that account; changing `ADMIN_PASSWORD` in Vercel changes the admin login password on the next deployment. An existing non-admin account with the configured email causes deployment to fail rather than promoting it. For non-Vercel deployments, run `php artisan migrate --force` and `php artisan db:seed --class=Database\\Seeders\\AdminUserSeeder --force` from a trusted environment with the database and admin variables configured.
-
-Generated files under `bootstrap/cache` are ignored by Git so Composer can rebuild Laravel's package/provider manifests for the deployment's installed dependencies.
 
 Vercel builds the frontend and stages its static files with `npm run build:vercel`; `vercel-php` installs the Composer dependencies. The PHP function routes requests through `public/index.php`, while generated files under `public/build` are published from `dist/build`.
 

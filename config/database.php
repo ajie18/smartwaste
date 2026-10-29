@@ -3,12 +3,6 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
-$mysqlCa = env('MYSQL_ATTR_SSL_CA');
-
-if (! is_string($mysqlCa) || ! is_file($mysqlCa)) {
-    $mysqlCa = is_file(base_path('ca.pem')) ? base_path('ca.pem') : null;
-}
-
 return [
 
     /*
@@ -66,7 +60,10 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => $mysqlCa,
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env(
+                    'MYSQL_ATTR_SSL_CA',
+                    env('VERCEL') && is_file(base_path('ca.pem')) ? base_path('ca.pem') : null
+                ),
             ]) : [],
         ],
 
@@ -86,7 +83,10 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => $mysqlCa,
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env(
+                    'MYSQL_ATTR_SSL_CA',
+                    env('VERCEL') && is_file(base_path('ca.pem')) ? base_path('ca.pem') : null
+                ),
             ]) : [],
         ],
 
