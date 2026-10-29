@@ -41,26 +41,31 @@ php artisan boost:install
 
 Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
 
-## Deploying on Wasmer Edge
+## Deploying on Vercel
 
-Wasmer Edge can detect this Laravel project from its Composer manifest and `public/index.php`. Connect the repository in Wasmer and deploy it as a PHP/Laravel app; the project requires PHP 8.4.1 or newer.
+This app uses the community `vercel-php` runtime because Vercel's official Functions runtimes do not include PHP. The project requires PHP 8.4.1 or newer; `vercel-php@0.8.0` supplies PHP 8.4. The root `vercel.json` configures the PHP function, Laravel front controller, and Vite asset build.
 
-Configure these production environment variables in Wasmer:
+Import the repository into Vercel or deploy it with the Vercel CLI. Configure these project environment variables in Vercel for Production (and Preview if needed):
 
 - `APP_ENV=production`
 - `APP_DEBUG=false`
-- `APP_KEY` — generate a key with `php artisan key:generate --show` and save it as a Wasmer secret
-- `APP_URL` — the deployed Wasmer URL or your custom domain
+- `APP_KEY` — generate a key with `php artisan key:generate --show` and save it as a Vercel secret. Keep this value stable across deployments.
+- `APP_URL` — the deployed Vercel URL or your custom domain
+- `DB_CONNECTION=mysql` or `pgsql`, plus `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, and `DB_PASSWORD` for a managed external database. Do not use the bundled SQLite file for production: Vercel functions have ephemeral filesystems.
+- `SESSION_DRIVER=database` and `CACHE_STORE=database` so sessions and cache persist across function instances. Run the migrations against the production database once before serving traffic.
+- `LOG_CHANNEL=stderr` (also configured in `vercel.json`)
 
-Wasmer can provision a MySQL database and provide `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, and `DB_PASSWORD`. The application uses those values when selecting and configuring its MySQL connection. If you connect PostgreSQL instead, set `DB_CONNECTION=pgsql`; both connections accept Wasmer's `DB_NAME` variable. Run `php artisan migrate --force` once the database is available, using a Wasmer remote session or deployment task, before serving traffic. The database-backed session, cache, and queue drivers require the corresponding Laravel migrations to have run.
+Run `php artisan migrate --force` from a trusted environment that has the production database credentials before the first deployment, and again when deploying schema changes. Do not run migrations as part of the Vercel build because builds can run for previews and concurrently.
 
-The deployment must build the Vite assets with `npm ci && npm run build` so the generated `public/build` files are included in the release.
+Vercel builds the frontend with `npm run build`; `vercel-php` installs the Composer dependencies. The PHP function routes requests through `public/index.php`, while generated files under `public/build` are served as static assets.
+
+Vercel's function filesystem is temporary. Use a persistent object-storage disk (for example S3-compatible storage) for user uploads; do not rely on local `storage/app` for production data. Database-backed queues also need a separately running worker; use `QUEUE_CONNECTION=sync` if the app should process queued work inline.
 
 The admin operations map is available at `/admin/map`; sign in at `/admin/login` with an existing user whose role is `admin`. It uses Leaflet with OpenStreetMap tiles and needs no map API key. Keep `MAP_TILE_URL` at its default unless you operate another tile provider.
 
-To enable password-reset and pickup-driver SMS, set `IPROGSMS_API_TOKEN` in the local `.env` and as a Wasmer secret. Optionally set `IPROGSMS_SENDER_NAME`; the API base URL and timeout have defaults in `.env.example`. The token is sent only by the server to iProgSMS. Pickup reminders go to the assigned driver's phone because this schema does not associate residents with route zones.
+To enable password-reset and pickup-driver SMS, set `IPROGSMS_API_TOKEN` in the local `.env` and as a Vercel secret. Optionally set `IPROGSMS_SENDER_NAME`; the API base URL and timeout have defaults in `.env.example`. The token is sent only by the server to iProgSMS. Pickup reminders go to the assigned driver's phone because this schema does not associate residents with route zones.
 
-The admin analytics AI endpoint is `POST /api/admin/analytics/insights`. It uses Gemini to summarize 30-day aggregate report and pickup counts, plus fleet and route totals; it does not send report descriptions or user details to the provider. Set `GEMINI_API_KEY` as a server-side secret locally and in Wasmer. `GEMINI_MODEL` and `GEMINI_TIMEOUT` have defaults in `.env.example`. Requests require an admin Sanctum token and are rate limited.
+The admin analytics AI endpoint is `POST /api/admin/analytics/insights`. It uses Gemini to summarize 30-day aggregate report and pickup counts, plus fleet and route totals; it does not send report descriptions or user details to the provider. Set `GEMINI_API_KEY` as a server-side secret locally and in Vercel. `GEMINI_MODEL` and `GEMINI_TIMEOUT` have defaults in `.env.example`. Requests require an admin Sanctum token and are rate limited.
 
 ## CI/CD and Railway deployment
 
