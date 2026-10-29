@@ -60,6 +60,8 @@ The admin operations map is available at `/admin/map`; sign in at `/admin/login`
 
 To enable password-reset and pickup-driver SMS, set `IPROGSMS_API_TOKEN` in the local `.env` and as a Wasmer secret. Optionally set `IPROGSMS_SENDER_NAME`; the API base URL and timeout have defaults in `.env.example`. The token is sent only by the server to iProgSMS. Pickup reminders go to the assigned driver's phone because this schema does not associate residents with route zones.
 
+The admin analytics AI endpoint is `POST /api/admin/analytics/insights`. It uses Gemini to summarize 30-day aggregate report and pickup counts, plus fleet and route totals; it does not send report descriptions or user details to the provider. Set `GEMINI_API_KEY` as a server-side secret locally and in Wasmer. `GEMINI_MODEL` and `GEMINI_TIMEOUT` have defaults in `.env.example`. Requests require an admin Sanctum token and are rate limited.
+
 ## CI/CD and Railway deployment
 
 GitHub Actions runs the PHPUnit suite and builds the Vite assets on pushes and pull requests. A successful push to `main` is then deployed to Railway.

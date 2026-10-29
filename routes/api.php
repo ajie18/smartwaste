@@ -1,19 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-// Controllers
-use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\TruckController;
-use App\Http\Controllers\Admin\RouteController;
-use App\Http\Controllers\Admin\PickupController;
-use App\Http\Controllers\Admin\ReportController as AdminReportController;
-use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
-use App\Http\Controllers\Admin\MRFController;
 use App\Http\Controllers\Admin\AnalyticsController;
+// Controllers
+use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\MRFController;
+use App\Http\Controllers\Admin\PickupController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\RouteController;
+use App\Http\Controllers\Admin\TruckController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\AuthController;
+use Illuminate\Support\Facades\Route;
 
 // ====================== AUTH ======================
 Route::prefix('auth')->group(function () {
@@ -60,6 +59,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
 
     // Analytics
     Route::get('/analytics', [AnalyticsController::class, 'index']);
+    Route::post('/analytics/insights', [AnalyticsController::class, 'aiInsights'])
+        ->middleware('throttle:10,1');
     Route::get('/export-analytics', [AnalyticsController::class, 'export']);
 
     // Announcements
