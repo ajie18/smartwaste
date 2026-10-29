@@ -17,7 +17,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', env('DB_HOST') ? 'mysql' : 'sqlite'),
+    'default' => env('DB_CONNECTION', env('DB_HOST') ? 'mysql' : (env('VERCEL') ? 'mysql' : 'sqlite')),
 
     /*
     |--------------------------------------------------------------------------
