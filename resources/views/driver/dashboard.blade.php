@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0d9668">
+    <meta name="api-base" content="/{{ trim(config('app.api_prefix', 'api'), '/') }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="{{ asset('manifest-driver.json') }}">
     <title>CleanCity · Driver Portal (Real-time)</title>
@@ -540,8 +541,8 @@
     </div>
 
     <div id="toast"></div>
-    <script src="{{ asset('js/request-guard.js') }}"></script>
-    <script src="{{ asset('js/driver/dashboard.js') }}"></script>
+    <script src="{{ asset('js/request-guard.js') }}?v={{ md5_file(public_path('js/request-guard.js')) }}"></script>
+    <script src="{{ asset('js/driver/dashboard.js') }}?v={{ md5_file(public_path('js/driver/dashboard.js')) }}"></script>
 
     <!-- Real-time (Laravel Reverb via Laravel Echo). Loaded after
          dashboard.js on purpose — see echo-bridge.js for why. -->
@@ -556,11 +557,11 @@
             scheme: "{{ env('REVERB_SCHEME', 'http') }}",
         };
     </script>
-    <script src="{{ asset('js/driver/echo-bridge.js') }}"></script>
+    <script src="{{ asset('js/driver/echo-bridge.js') }}?v={{ md5_file(public_path('js/driver/echo-bridge.js')) }}"></script>
 
     <!-- Resident <-> driver chat widget -->
-    <script src="{{ asset('js/chat-widget.js') }}"></script>
-    <script src="{{ asset('js/pwa.js') }}"></script>
+    <script src="{{ asset('js/chat-widget.js') }}?v={{ md5_file(public_path('js/chat-widget.js')) }}"></script>
+    <script src="{{ asset('js/pwa.js') }}?v={{ md5_file(public_path('js/pwa.js')) }}"></script>
     <script>
         (function () {
             let user = {};
@@ -569,7 +570,7 @@
                 role: 'driver',
                 token: localStorage.getItem('token'),
                 currentUserId: (user && user.id) || (typeof driverId !== 'undefined' ? driverId : null),
-                apiBase: '/api',
+                apiBase: '/{{ trim(config('app.api_prefix', 'api'), '/') }}',
             });
         })();
     </script>

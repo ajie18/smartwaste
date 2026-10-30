@@ -120,7 +120,7 @@ async function executeDelete(id) {
     pendingDeleteId = null;
 }
 
-const API_URL = window.location.origin + '/api';
+const API_URL = window.location.origin + (document.querySelector('meta[name="api-base"]')?.content || '/api');
 console.log('API URL:', API_URL);
 
 function getToken() {

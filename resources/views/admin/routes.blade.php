@@ -434,5 +434,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/admin/routes.js') }}"></script>
+    <script src="{{ asset('js/admin/routes.js') }}?v={{ md5_file(public_path('js/admin/routes.js')) }}"></script>
 @endpush

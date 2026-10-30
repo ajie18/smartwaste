@@ -263,5 +263,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/admin/trucks.js') }}"></script>
+    <script src="{{ asset('js/admin/trucks.js') }}?v={{ md5_file(public_path('js/admin/trucks.js')) }}"></script>
 @endpush

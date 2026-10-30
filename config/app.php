@@ -10,6 +10,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'api_prefix' => env('API_PREFIX', 'api'),
+
     'timezone' => env('APP_TIMEZONE', 'Asia/Manila'),
 
     'locale' => env('APP_LOCALE', 'en'),

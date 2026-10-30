@@ -174,5 +174,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/admin/schedules.js') }}"></script>
+    <script src="{{ asset('js/admin/schedules.js') }}?v={{ md5_file(public_path('js/admin/schedules.js')) }}"></script>
 @endpush

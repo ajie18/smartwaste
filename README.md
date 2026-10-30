@@ -92,8 +92,11 @@ community `vercel-php` runtime and overrides any dashboard build command
 such as `vite build`. Its build script stages safe static files from
 `public/` into `dist/`, excluding PHP files and `.htaccess`, while Laravel
 requests are handled by `api/index.php`. Vercel's filesystem route serves
-staged assets directly and forwards application paths, including `/api/*`,
-to Laravel's front controller.
+staged assets directly and forwards application paths to Laravel's front
+controller. Browser API requests use `/backend/*` to avoid Vercel's reserved
+`/api/*` function namespace; `API_PREFIX=backend` is configured for the
+Vercel deployment. Other environments retain Laravel's standard `/api`
+prefix.
 
 Configure these Vercel Production environment variables:
 

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="api-base" content="/{{ trim(config('app.api_prefix', 'api'), '/') }}">
     <title>CleanCity — Sign In</title>
     <link rel="stylesheet" href="{{ asset('css/auth.css') }}?v={{ filemtime(public_path('css/auth.css')) }}">
 </head>
@@ -118,7 +119,7 @@
             </main>
         </div>
     </div>
-    <script src="{{ asset('js/login.js') }}?v={{ filemtime(public_path('js/login.js')) }}"></script>
+    <script src="{{ asset('js/login.js') }}?v={{ md5_file(public_path('js/login.js')) }}"></script>
 </body>
 
 </html>

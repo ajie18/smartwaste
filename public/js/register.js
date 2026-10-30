@@ -1,4 +1,4 @@
-const API_URL = window.location.origin + "/api";
+const API_URL = window.location.origin + (document.querySelector('meta[name="api-base"]')?.content || "/api");
 
 function setLoading(btn, loading) {
     if (!btn) return;

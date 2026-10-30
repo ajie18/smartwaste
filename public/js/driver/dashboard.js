@@ -11,7 +11,8 @@ const WS_URL = SERVER_URL.replace('http', 'ws');
 // simply never open a socket (see connectWebSocket() below) and those
 // fallbacks fire on every action. Swap in Laravel Echo + Reverb later if
 // you want push updates instead of the 60s REST poll.
-const BASE = "/api/driver";
+const API_BASE = document.querySelector('meta[name="api-base"]')?.content || "/api";
+const BASE = API_BASE + "/driver";
 
 const hdrs = () => ({
     Authorization: `Bearer ${token}`,
@@ -1033,7 +1034,7 @@ function updateRouteProgress(lat, lng) {
 async function loadResidents() {
     if (!dMap) return;
     try {
-        const residents = await apiRaw("/api/resident-locations");
+        const residents = await apiRaw(API_BASE + "/resident-locations");
         const seen = new Set();
         residents.forEach(r => {
             if (!r.latitude || !r.longitude) return;

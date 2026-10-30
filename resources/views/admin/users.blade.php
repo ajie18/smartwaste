@@ -231,5 +231,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/admin/users.js') }}"></script>
+    <script src="{{ asset('js/admin/users.js') }}?v={{ md5_file(public_path('js/admin/users.js')) }}"></script>
 @endpush

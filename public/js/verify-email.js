@@ -1,4 +1,4 @@
-const API_URL = window.location.origin + "/api";
+const API_URL = window.location.origin + (document.querySelector('meta[name="api-base"]')?.content || "/api");
 
 function showAlert(msg, type) {
     const el = document.getElementById("alertBox");

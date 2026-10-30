@@ -160,7 +160,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/admin/analytics.js') }}"></script>
+    <script src="{{ asset('js/admin/analytics.js') }}?v={{ md5_file(public_path('js/admin/analytics.js')) }}"></script>
     <script>
         async function loadAiInsight() {
             const btn = document.getElementById('aiInsightBtn');

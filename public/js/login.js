@@ -1,4 +1,4 @@
-const API_URL = window.location.origin + "/api";
+const API_URL = window.location.origin + (document.querySelector('meta[name="api-base"]')?.content || "/api");
 
 document.getElementById("togglePasswordBtn")?.addEventListener("click", function () {
     const input = document.getElementById("password");
@@ -69,7 +69,7 @@ async function login() {
         const contentType = res.headers.get("content-type") || "";
         if (!contentType.includes("application/json")) {
             throw new Error(
-                `Login API returned HTTP ${res.status} instead of JSON. Check the API route configuration.`
+                `Login endpoint ${res.url} returned HTTP ${res.status} instead of JSON. Confirm the latest deployment is active.`
             );
         }
 

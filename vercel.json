@@ -7,7 +7,7 @@
   },
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/backend/(.*)",
       "dest": "/api/index.php"
     },
     {
@@ -24,6 +24,7 @@
     "CACHE_STORE": "array",
     "LOG_CHANNEL": "stderr",
     "QUEUE_CONNECTION": "sync",
+    "API_PREFIX": "backend",
     "SESSION_DRIVER": "cookie",
     "TRUSTED_PROXIES": "*",
     "VIEW_COMPILED_PATH": "/tmp/laravel-views",

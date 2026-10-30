@@ -123,5 +123,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/admin/dashboard.js') }}"></script>
+    <script src="{{ asset('js/admin/dashboard.js') }}?v={{ md5_file(public_path('js/admin/dashboard.js')) }}"></script>
 @endpush

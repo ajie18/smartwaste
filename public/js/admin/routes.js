@@ -12,7 +12,7 @@ function closeModal(id) {
 window.openModal = openModal;
 window.closeModal = closeModal;
 
-const API_URL = window.location.origin + '/api';
+const API_URL = window.location.origin + (document.querySelector('meta[name="api-base"]')?.content || '/api');
 console.log('API URL:', API_URL);
 
 function getToken() {

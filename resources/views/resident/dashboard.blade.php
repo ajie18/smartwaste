@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0d9668">
+    <meta name="api-base" content="/{{ trim(config('app.api_prefix', 'api'), '/') }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="{{ asset('manifest-resident.json') }}">
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
@@ -602,8 +603,8 @@
         </svg>
     </button>
 
-    <script src="{{ asset('js/request-guard.js') }}"></script>
-    <script src="{{ asset('js/resident/dashboard.js') }}"></script>
+    <script src="{{ asset('js/request-guard.js') }}?v={{ md5_file(public_path('js/request-guard.js')) }}"></script>
+    <script src="{{ asset('js/resident/dashboard.js') }}?v={{ md5_file(public_path('js/resident/dashboard.js')) }}"></script>
     <script src="https://unpkg.com/pusher-js@8.4/dist/web/pusher.min.js"></script>
     <script src="https://unpkg.com/laravel-echo@1.16/dist/echo.iife.js"></script>
     <script>
@@ -615,9 +616,9 @@
             scheme: "{{ env('REVERB_SCHEME', 'http') }}",
         };
     </script>
-    <script src="{{ asset('js/resident/echo-bridge.js') }}"></script>
-    <script src="{{ asset('js/chat-widget.js') }}"></script>
-    <script src="{{ asset('js/pwa.js') }}"></script>
+    <script src="{{ asset('js/resident/echo-bridge.js') }}?v={{ md5_file(public_path('js/resident/echo-bridge.js')) }}"></script>
+    <script src="{{ asset('js/chat-widget.js') }}?v={{ md5_file(public_path('js/chat-widget.js')) }}"></script>
+    <script src="{{ asset('js/pwa.js') }}?v={{ md5_file(public_path('js/pwa.js')) }}"></script>
     <script>
         (function() {
             let user = {};
@@ -629,7 +630,7 @@
                     role: 'resident',
                     token: localStorage.getItem('token'),
                     currentUserId: user && user.id,
-                    apiBase: '/api',
+                    apiBase: '/{{ trim(config('app.api_prefix', 'api'), '/') }}',
                 });
             }
         })();

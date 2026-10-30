@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="api-base" content="/{{ trim(config('app.api_prefix', 'api'), '/') }}">
     <title>@yield('title', 'Dashboard') · CleanCity Admin</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{{ asset('js/style.js') }}"></script>
-    <script src="{{ asset('js/request-guard.js') }}"></script>
+    <script src="{{ asset('js/style.js') }}?v={{ md5_file(public_path('js/style.js')) }}"></script>
+    <script src="{{ asset('js/request-guard.js') }}?v={{ md5_file(public_path('js/request-guard.js')) }}"></script>
     <link rel="stylesheet" href="{{ asset('css/admin/' . ($cssFile ?? 'dashboard') . '.css') }}">
     @stack('head')
 </head>

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="api-base" content="/{{ trim(config('app.api_prefix', 'api'), '/') }}">
     <title>CleanCity — Account Recovery</title>
     <link rel="stylesheet" href="{{ asset('css/auth.css') }}?v={{ filemtime(public_path('css/auth.css')) }}">
     <style>
@@ -131,7 +132,7 @@
         </div>
     </div>
     <div id="sidebarOverlay" class="sidebar-overlay"></div>
-    <script src="{{ asset('js/forgot-password.js') }}?v={{ filemtime(public_path('js/forgot-password.js')) }}"></script>
+    <script src="{{ asset('js/forgot-password.js') }}?v={{ md5_file(public_path('js/forgot-password.js')) }}"></script>
 </body>
 
 </html>

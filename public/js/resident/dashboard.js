@@ -1,6 +1,7 @@
 const token = localStorage.getItem('token');
 if (!token) window.location.href = '/login.html';
 
+const API_BASE = document.querySelector('meta[name="api-base"]')?.content || '/api';
 const pendingRequests = new Map();
 
 async function apiFetch(url, options = {}) {
@@ -334,7 +335,7 @@ function initMap(lat = DEFAULT_CENTER.lat, lng = DEFAULT_CENTER.lng) {
 
 async function loadFallbackMRF() {
     try {
-        const mrf = await apiFetch('/api/mrf-location');
+        const mrf = await apiFetch(`${API_BASE}/mrf-location`);
         if (!mrf || !mrf.latitude || !mrf.longitude) return;
 
         const icon = L.divIcon({
@@ -649,7 +650,7 @@ function placeTruckMarker(lat, lng, animate = true) {
 async function loadResidentLocations() {
     if (!map) return;
     try {
-        const list = await apiFetch('/api/resident-locations');
+        const list = await apiFetch(`${API_BASE}/resident-locations`);
         const freshIds = new Set(list.map(r => r.id));
         Object.keys(residentMarkers).forEach(id => {
             if (!freshIds.has(parseInt(id))) {
@@ -824,7 +825,7 @@ function toggleShareLocation() {
 async function pushMyLocation(lat, lng) {
     if (!lat || !lng) return;
     try {
-        await apiFetch('/api/resident/share-location', {
+        await apiFetch(`${API_BASE}/resident/share-location`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ latitude: lat, longitude: lng })
@@ -842,7 +843,7 @@ async function loadSchedule() {
     const el = document.getElementById('scheduleCards');
     if (!el) return;
     try {
-        const data = await apiFetch('/api/resident/pickup-schedule');
+        const data = await apiFetch(`${API_BASE}/resident/pickup-schedule`);
         if (!data.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h3>No schedule yet</h3><p>Your pickup days will appear here once assigned.</p></div>'; return; }
         window._scheduleData = data;
         renderSchedule();
@@ -903,7 +904,7 @@ async function loadAnnouncements() {
     const el = document.getElementById('announcementCards');
     if (!el) return;
     try {
-        const data = await apiFetch('/api/resident/announcements');
+        const data = await apiFetch(`${API_BASE}/resident/announcements`);
         window._annData = data;
         renderAnnouncements();
     } catch (err) {
@@ -989,8 +990,8 @@ async function loadTodayTruck(assignmentId = null) {
     resetCollectionBanner();
     try {
         const endpoint = assignmentId
-            ? `/api/resident/today-truck?assignment_id=${encodeURIComponent(assignmentId)}`
-            : '/api/resident/today-truck';
+            ? `${API_BASE}/resident/today-truck?assignment_id=${encodeURIComponent(assignmentId)}`
+            : `${API_BASE}/resident/today-truck`;
         const data = await apiFetch(endpoint);
         if (!data) {
             statusEl.textContent = 'No truck assigned today.';
@@ -1044,7 +1045,7 @@ async function loadTodayTruck(assignmentId = null) {
 
         if (data.route_id) {
             try {
-                const routeData = await apiFetch(`/api/resident/route-waypoints?route_id=${data.route_id}`);
+                const routeData = await apiFetch(`${API_BASE}/resident/route-waypoints?route_id=${data.route_id}`);
                 const parsed = parseWaypointsJson(routeData.raw_waypoints || routeData.waypoints_json);
                 if (parsed.road.length || parsed.pins.length || parsed.mrfs.length) {
                     initMap(parsed.road[0]?.lat || DEFAULT_CENTER.lat, parsed.road[0]?.lng || DEFAULT_CENTER.lng);
@@ -1083,7 +1084,7 @@ async function pollTruckLocation() {
     if (!currentTruckId || !['in_progress', 'completed'].includes(routeStatus)) return;
     try {
         console.log(`Polling truck ${currentTruckId} location...`);
-        const logs = await apiFetch(`/api/resident/truck/${currentTruckId}/location`);
+        const logs = await apiFetch(`${API_BASE}/resident/truck/${currentTruckId}/location`);
         if (logs && logs.length > 0) {
             const validLogs = logs.filter(log => log.latitude && log.longitude);
             if (!validLogs.length) return;
@@ -1181,7 +1182,7 @@ function connectResidentSocket() {
 
 async function loadProfile() {
     try {
-        const p = await apiFetch('/api/resident/profile');
+        const p = await apiFetch(`${API_BASE}/resident/profile`);
         window._profile = p;
         const displayName = p.name || 'Resident';
         const initial = displayName.trim().charAt(0).toUpperCase() || 'R';
@@ -1216,7 +1217,7 @@ async function handleProfileSave(e) {
     const phone = document.getElementById('profilePhone')?.value.trim();
     if (!name) { showToast('Name is required', 'error'); return; }
     try {
-        await apiFetch('/api/resident/profile', {
+        await apiFetch(`${API_BASE}/resident/profile`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, phone })
@@ -1238,7 +1239,7 @@ async function handlePasswordChange(e) {
     if (next.length < 8) { showToast('New password must be at least 8 characters', 'error'); return; }
     if (next !== confirmVal) { showToast('Passwords do not match', 'error'); return; }
     try {
-        await apiFetch('/api/resident/change-password', {
+        await apiFetch(`${API_BASE}/resident/change-password`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ current_password: current, new_password: next })
@@ -1406,7 +1407,7 @@ async function submitReport(type, desc) {
     if (reportLng !== null) payload.longitude = reportLng;
     if (reportPhotoBase64) payload.image_url = reportPhotoBase64;
     try {
-        await apiFetch('/api/resident/reports', {
+        await apiFetch(`${API_BASE}/resident/reports`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)

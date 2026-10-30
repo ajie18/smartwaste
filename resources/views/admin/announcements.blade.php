@@ -120,5 +120,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/admin/announcements.js') }}"></script>
+    <script src="{{ asset('js/admin/announcements.js') }}?v={{ md5_file(public_path('js/admin/announcements.js')) }}"></script>
 @endpush
