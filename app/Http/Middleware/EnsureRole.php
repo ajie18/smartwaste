@@ -13,10 +13,7 @@ class EnsureRole
     {
         $user = $request->user();
 
-        $hasSpatieRole = $user && method_exists($user, 'hasAnyRole') && $user->hasAnyRole($roles);
-        $hasLegacyRole = $user && in_array($user->role, $roles, true);
-
-        if (!$user || (!$hasSpatieRole && !$hasLegacyRole)) {
+        if (!$user || !in_array($user->role, $roles, true)) {
             return response()->json(['error' => 'Forbidden'], 403);
         }
 

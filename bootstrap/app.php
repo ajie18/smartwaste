@@ -20,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: env('TRUSTED_PROXIES'));
 
         $middleware->alias([
-            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'role' => \App\Http\Middleware\EnsureRole::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);

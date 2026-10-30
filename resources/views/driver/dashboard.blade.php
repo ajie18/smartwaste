@@ -351,7 +351,7 @@
                         </strong>
                         <div class="route-panel-actions">
                             <button class="btn btn-ghost btn-sm" onclick="fitAllStops()">Fit Map</button>
-                            <button class="btn btn-ghost btn-sm" onclick="optimizeRoute()">Optimize</button>
+                            <button class="btn btn-ghost btn-sm" onclick="refreshRoute()">Refresh Route</button>
                         </div>
                     </div>
                     <div class="route-stats">

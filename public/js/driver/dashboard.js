@@ -267,6 +267,7 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 10;
 
 let currentAssignmentId = null;
+let currentRouteId = null;
 let routeStatus = null;
 
 function connectWebSocket() {
@@ -661,7 +662,16 @@ function goToMRF() {
     }
 }
 
-function optimizeRoute() { toast("Route optimization coming soon", "info"); }
+async function refreshRoute() {
+    if (!currentRouteId) {
+        toast("No route is assigned for this shift", "info");
+        return;
+    }
+
+    const refreshed = await loadRouteWaypoints(currentRouteId);
+    toast(refreshed ? "Route refreshed" : "Could not refresh the route", refreshed ? "success" : "error");
+}
+
 function useCurrentLoc() {
     if (!lastPos) { toast("GPS not active", "info"); return; }
     document.getElementById("repLocation").value = `${lastPos.lat.toFixed(5)}, ${lastPos.lng.toFixed(5)}`;
@@ -1343,6 +1353,7 @@ function renderRouteTabs() {
 function selectAssignment(idx) {
     if (idx < 0 || idx >= todaysAssignments.length) {
         currentAssignmentId = null;
+        currentRouteId = null;
         routeStatus = null;
         renderAssignment(null);
         initMap(8.2380, 123.0, 14);
@@ -1351,6 +1362,7 @@ function selectAssignment(idx) {
     activeAssignmentIdx = idx;
     const data = todaysAssignments[idx];
     currentAssignmentId = data.id;
+    currentRouteId = data.route_id || null;
     routeStatus = data.status;
     activeProgressLog = data.progress_log || null;
     if (routeStatus === 'in_progress' && !gpsActive) {
@@ -1397,10 +1409,13 @@ async function loadRouteWaypoints(routeId) {
             document.getElementById("routePanel").classList.add("show");
         } else {
             initMap(8.2380, 123.0, 14);
+            return false;
         }
+        return true;
     } catch (e) {
         console.error("loadRouteWaypoints:", e);
         initMap(8.2380, 123.0, 14);
+        return false;
     }
 }
 
@@ -1654,7 +1669,7 @@ setInterval(() => {
 
 window.updateStatus = updateStatus;
 window.useCurrentLoc = useCurrentLoc;
-window.optimizeRoute = optimizeRoute;
+window.refreshRoute = refreshRoute;
 window.toggleLock = toggleLock;
 window.toggleSat = toggleSat;
 window.toggleRoutePanel = toggleRoutePanel;
