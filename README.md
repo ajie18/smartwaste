@@ -91,7 +91,9 @@ not use Vite or an npm build. The checked-in `vercel.json` selects the
 community `vercel-php` runtime and overrides any dashboard build command
 such as `vite build`. Its build script stages safe static files from
 `public/` into `dist/`, excluding PHP files and `.htaccess`, while Laravel
-requests are handled by `api/index.php`.
+requests are handled by `api/index.php`. Vercel's filesystem route serves
+staged assets directly and forwards application paths, including `/api/*`,
+to Laravel's front controller.
 
 Configure these Vercel Production environment variables:
 

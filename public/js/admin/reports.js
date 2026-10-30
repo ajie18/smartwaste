@@ -389,7 +389,7 @@ async function loadReports() {
 
 async function loadResidents() {
     try {
-        const res = await API.get('/admin/resident-locations');
+        const res = await API.get('/resident-locations');
         if (!res.ok) throw new Error('Failed to fetch residents');
         allResidents = await res.json();
 

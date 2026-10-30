@@ -66,6 +66,13 @@ async function login() {
             body: JSON.stringify({ email, password })
         });
 
+        const contentType = res.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+            throw new Error(
+                `Login API returned HTTP ${res.status} instead of JSON. Check the API route configuration.`
+            );
+        }
+
         const data = await res.json();
 
         if (res.ok) {
@@ -86,7 +93,7 @@ async function login() {
         }
     } catch (err) {
         console.error("Login error:", err);
-        showAlert("Something went wrong. Please try again.", "error");
+        showAlert(err.message || "Something went wrong. Please try again.", "error");
         resetButton(btn, btnText, btnLoader);
     }
 }
