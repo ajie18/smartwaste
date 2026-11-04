@@ -1,11 +1,22 @@
+
 FROM composer:2.8 AS dependencies
 
 WORKDIR /app
+
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts --optimize-autoloader
+
+RUN composer install \
+    --no-dev \
+    --prefer-dist \
+    --no-interaction \
+    --no-progress \
+    --no-scripts \
+    --optimize-autoloader
+
 
 FROM php:8.3-cli
 
+# Install system dependencies and PostgreSQL/MySQL PHP extensions.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libicu-dev \
@@ -24,11 +35,17 @@ RUN apt-get update \
 
 WORKDIR /var/www/html
 
+# Copy Composer dependencies.
 COPY --from=dependencies /app/vendor ./vendor
+
+# Copy Laravel application.
 COPY . .
+
+# Copy deployment entrypoint.
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh \
+    && mkdir -p storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 8080

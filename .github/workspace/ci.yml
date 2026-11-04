@@ -71,7 +71,7 @@ jobs:
           done
 
       - name: Run Migrations
-        run: php artisan migrate:fresh --seed --force
+        run: php artisan migrate --force
 
       - name: Clear Laravel caches
         run: |
