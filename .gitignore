@@ -3,6 +3,7 @@
 /public/build
 /public/hot
 /public/storage
+/database/*.sqlite
 /dist
 /storage/*.key
 /storage/pail

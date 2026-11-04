@@ -58,13 +58,23 @@ all default `config/*.php` files) plus the custom SmartWaste app layer on
 top of it. Earlier drops of this zip were missing the skeleton entirely;
 that's fixed now.
 
-```bash
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate
-php artisan storage:link   # needed for announcement image uploads to resolve
+On Windows, run the included setup script from PowerShell in the repository
+root:
+
+```powershell
+.\scripts\setup-local.ps1
 ```
+
+It checks PHP/Composer and the SQLite PDO extension, installs Composer
+dependencies if needed, creates `.env` without overwriting an existing one,
+creates the local SQLite database file if missing, generates an app key when
+needed, runs all database migrations, and creates the public storage link.
+The default database is `database/smartwaste-local.sqlite`; the existing
+`database/database.sqlite` file is left untouched. No MySQL server, Node.js,
+or npm install is needed for a basic local run. To use MySQL instead, create
+the database first (for example, `CREATE DATABASE smartwaste CHARACTER SET
+utf8mb4 COLLATE utf8mb4_unicode_ci;`), configure the `DB_*` values in `.env`,
+then run `php artisan migrate`.
 
 **No `npm install` or Node needed at all** — every page uses plain
 `public/css`/`public/js` assets or CDN scripts (Chart.js, Leaflet,
@@ -77,8 +87,9 @@ Then:
 php artisan serve
 ```
 
-and visit `http://localhost:8000/login`. For real-time (optional but
-wired up):
+and visit `http://localhost:8000/login`. Broadcasting defaults to the log
+driver, so the app runs without a separate WebSocket process. For real-time
+updates (optional), set `BROADCAST_CONNECTION=reverb` in `.env`, then run:
 
 ```bash
 php artisan reverb:start
@@ -171,13 +182,11 @@ client's public Reverb host to that service's public domain. The web
 service can run with `BROADCAST_CONNECTION=log` if real-time updates are
 not needed.
 
-**Defaults are deliberately zero-setup**: `SESSION_DRIVER`, `CACHE_STORE`
-are `file` and `QUEUE_CONNECTION` is `sync` in `.env.example` — no extra
-`sessions`/`cache`/`jobs` tables needed. The only required external
-service is MySQL (`DB_*` in `.env`). Everything else (SMS, Reverb) degrades
-gracefully — `SmsService` logs instead of sending when `IPROG_API_TOKEN`
-is unset, and the driver dashboard just stays on REST polling if Reverb
-isn't running.
+**Defaults are deliberately zero-setup**: local development uses SQLite,
+file sessions/cache, a synchronous queue, and log broadcasting—no external
+database or WebSocket service is required. SMS is disabled unless
+`IPROG_API_TOKEN` is configured. Reverb can be enabled separately for
+real-time updates.
 
 ## What's here
 
